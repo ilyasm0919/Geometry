@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.ibis"
-version = "1.1.1"
+version = "1.2.0"
 
 repositories {
     google()
@@ -22,7 +22,7 @@ dependencies {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "18"
+    kotlinOptions.jvmTarget = "17"
 }
 
 compose.desktop {
