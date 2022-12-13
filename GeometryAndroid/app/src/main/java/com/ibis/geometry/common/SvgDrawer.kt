@@ -1,0 +1,120 @@
+package com.ibis.geometry.common
+
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.center
+import androidx.compose.ui.graphics.Color
+import java.io.OutputStreamWriter
+
+class SvgDrawer(override val size: Size, val writer: OutputStreamWriter): Drawer {
+    private fun writeOpen(tag: String, vararg attributes: Pair<String, Any>) {
+        writer.write("<$tag${attributes.joinToString("") { (name, value) ->
+            " $name=\"$value\""
+        }}")
+    }
+
+    init {
+        writeOpen(
+            "svg",
+            "width" to size.width,
+            "height" to size.height,
+            "xmlns" to "http://www.w3.org/2000/svg"
+        )
+        writer.write(">")
+        writeOpen(
+            "g",
+            "transform" to
+                    "translate(${size.center.x}, ${size.center.y}) scale(${size.minDimension / 200})",
+            "stroke-width" to 0.8,
+            "font-size" to 8,
+            "font-family" to "roboto"
+        )
+        writer.write(">")
+    }
+
+    fun finish() {
+        writer.write("</g></svg>")
+        writer.close()
+    }
+
+    fun write(tag: String, vararg attributes: Pair<String, Any>, content: (() -> Unit)? = null) {
+        writeOpen(tag, *attributes)
+        content?.let {
+            writer.write(">")
+            it()
+            writer.write("</$tag>")
+        } ?: writer.write("/>")
+    }
+
+    override fun point(offset: Offset, color: Color) {
+        write(
+            "circle",
+            "cx" to offset.x,
+            "cy" to offset.y,
+            "r" to 1.8,
+            "fill" to color.svg
+        )
+    }
+
+    override fun circle(center: Offset, radius: Float, style: Style) = style.styled {
+        write(
+            "circle",
+            "cx" to center.x,
+            "cy" to center.y,
+            "r" to radius,
+            *it
+        )
+    }
+
+    override fun line(from: Offset, to: Offset, style: Style) = style.styled {
+        write(
+            "line",
+            "x1" to from.x,
+            "y1" to from.y,
+            "x2" to to.x,
+            "y2" to to.y,
+            *it
+        )
+    }
+
+    override fun polygon(points: List<Offset>, style: Style) = style.styled {
+        write(
+            "polygon",
+            "points" to points.joinToString { point ->
+                "${point.x} ${point.y}"
+            },
+            *it
+        )
+    }
+
+    override fun text(pos: Offset, text: List<String>, color: Color) {
+        write(
+            "text",
+            "x" to pos.x + 3f,
+            "y" to pos.y + 3f,
+            "fill" to color.svg
+        ) {
+            text.forEachIndexed { index, str ->
+                if (index % 2 == 0) writer.write(str)
+                else write("tspan", "baseline-shift" to "sub") {
+                    writer.write(str)
+                }
+            }
+        }
+    }
+}
+
+val Color.svg get() = "rgb(${red*255}, ${green*255}, ${blue*255})"
+
+private fun Style.styled(action: (Array<Pair<String, Any>>) -> Unit) = if (fill || border != Border.No) {
+    val filled: Array<Pair<String, Any>> =
+        if (fill) arrayOf("fill" to color.svg, "fill-opacity" to 0.3)
+        else arrayOf("fill" to "transparent")
+    val stroked =
+        if (border == Border.No) arrayOf()
+        else arrayOf("stroke" to color.svg)
+    val effect = border.effect?.let {
+        arrayOf("stroke-dasharray" to it.joinToString(","))
+    }.orEmpty()
+    action(filled + stroked + effect)
+} else Unit
