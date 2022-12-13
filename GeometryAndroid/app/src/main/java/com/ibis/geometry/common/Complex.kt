@@ -10,15 +10,6 @@ data class Complex(val re: Float, val im: Float): Geometric() {
 
     val norm get() = re * re + im * im
 
-    fun arg() = when {
-        re > 0 -> atan(im / re)
-        re < 0 && im >= 0 -> atan(im / re) + PI.toFloat()
-        re < 0 && im < 0 -> atan(im / re) - PI.toFloat()
-        re == 0f && im > 0 -> PI.toFloat() / 2
-        re == 0f && im < 0 -> -PI.toFloat() / 2
-        else -> 0f
-    }
-
     fun abs() = sqrt(norm)
 
     operator fun unaryMinus() = Complex(-re, -im)

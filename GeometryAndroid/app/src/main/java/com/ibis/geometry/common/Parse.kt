@@ -113,6 +113,7 @@ fun function(name: String, args: Collection<Reactive<Geometric>>): Reactive<Geom
         "parallel" -> reactive { parallel(point(), line()) }
         "perpendicular" -> reactive { perpendicular(point(), line()) }
         "project" -> reactive { project(point(), line()) }
+        "cproject" -> reactive { cproject(point(), circle()) }
         "bisector" -> reactive { bisector(point(), point(), point()) }
         "exbisector" -> reactive { exbisector(point(), point(), point()) }
         "centroid" -> reactive { centroid(polygon()) }
@@ -121,6 +122,8 @@ fun function(name: String, args: Collection<Reactive<Geometric>>): Reactive<Geom
         "incenter" -> reactive { incenter(triangle()) }
         "excenter" -> reactive { excenter(point(), point(), point()) }
         "circumcircle" -> reactive { circumcircle(triangle()) }
+        "re" -> reactive { point().re.real() }
+        "im" -> reactive { point().im.real() }
         "exp" -> reactive { point().exp() }
         "ln" -> reactive { point().ln() }
         "abs" -> reactive { point().abs().real() }
@@ -217,6 +220,6 @@ fun parseModifiers(init: String): Pair<List<(Style) -> Unit>, String> {
 }
 
 fun parseWord(line: String): Pair<String, String>? =
-    line.takeWhile { it.isLetterOrDigit() || it in "_'{}" }.takeIf { it.isNotEmpty() && it[0].isLetter() }?.let {
+    line.takeWhile { it.isLetterOrDigit() || it in "_'{}" }.takeIf { it.isNotEmpty() && it[0].isLetter() && it != "i" }?.let {
         it to line.substring(it.length).trimStart()
     }

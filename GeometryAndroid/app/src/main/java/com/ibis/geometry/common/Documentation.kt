@@ -37,7 +37,8 @@ line(Line): Line
 segment(Segment): Segment
 circle(Circle): Circle
 triangle(Triangle): Triangle
-polygon(Polygon): Polygon""",
+polygon(Polygon): Polygon
+""",
     "Intersections" to """
 intersect(Line, Line): Point
 cintersect(Point, Line, Circle): Point
@@ -51,6 +52,7 @@ ccintersect2(Circle, Circle): Point
 midpoint(Segment): Point
 divide(Complex, Segment): Point
 project(Point, Line): Point
+cproject(Point, Circle): Point
 centroid(Polygon): Point
 circumcenter(Triangle): Point
 orthocenter(Triangle): Point
@@ -82,6 +84,8 @@ homothety(Object, Point, Complex): Object
 inversion(Object, Circle): Object
 """,
     "Algebra" to """
+re(Complex): Real
+im(Complex): Real
 exp(Complex): Complex
 ln(Complex): Complex
 abs(Complex): Real

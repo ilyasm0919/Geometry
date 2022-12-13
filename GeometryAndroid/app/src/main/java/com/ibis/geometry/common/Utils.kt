@@ -1,5 +1,7 @@
 package com.ibis.geometry.common
 
+import kotlin.math.sqrt
+
 // (z - a) * (~a - ~b) = (~z - ~a) * (a - b)
 // z * (~a - ~b) + ~z * (b - a) + (a * ~b - b * ~a) = 0
 // z * (~a - ~b) * (-i) + ~z * (a - b) * i + (~a * b * i + a * ~b * (-i)) = 0
@@ -58,6 +60,10 @@ fun perpendicular(a: Complex, l: Line) =
 // z * ~a + ~z * a + b = 0
 // 2 * z * ~a - p * ~a + ~p * a + b = 0
 fun project(a: Complex, l: Line) = (a - (a.conj() * l.coef + l.free) / l.coef.conj()) / 2
+
+fun cproject(a: Complex, c: Circle) = (a - c.center).let {
+    it * sqrt(c.radiusSqr / it.norm) + c.center
+}
 
 // (z - b) * ~sqrt((a - b) * (c - b)) = (~z - ~b) * sqrt((a - b) * (c - b))
 // (z - b) * ~s * (-i) + (~z - ~b) * s * i = 0
