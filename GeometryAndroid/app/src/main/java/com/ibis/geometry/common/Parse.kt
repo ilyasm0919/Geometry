@@ -6,17 +6,17 @@ import kotlin.math.sqrt
 //Random(7605164863913659101)
 class ParseContext(
     val names: MutableMap<String, Reactive<Geometric>>,
-    val movable: MutableList<Movable>
+    var movableSource: String?
 )
 
 inline fun<A, B, C> Pair<A, C>.mapFst(selector: (A) -> B) = selector(first) to second
 inline fun<A, B, C> Pair<A, B>.mapSnd(selector: (B) -> C) = first to selector(second)
 
-fun parse(content: String) = ParseContext(mutableMapOf(), mutableListOf()).run {
-    content.lines().filter(String::isNotBlank).map(::parseLine).sequenceA() to movable as List<Movable>
+fun parse(content: String) = ParseContext(mutableMapOf(), null).run {
+    content.lines().filter(String::isNotBlank).map(::parseLine).sequenceA()
 }
 
-fun ParseContext.parseLine(init: String): Reactive<Drawable> {
+fun ParseContext.parseLine(init: String): Reactive<Pair<Drawable, Movable?>> {
     val (modifiers, line) = parseModifiers(init)
     val index = line.indexOf("=")
     val value = line.substring(index + 1).trimStart()
@@ -26,11 +26,13 @@ fun ParseContext.parseLine(init: String): Reactive<Drawable> {
         line.substring(0, it).trimEnd()
     }?.also { names[it] = res }
     val spanned = name?.let(::spans)
-    return res.map {
-        val drawable = it.toDrawable()
+    val movable = movableSource
+    movableSource = null
+    return res.map { geometric ->
+        val drawable = geometric.toDrawable()
         modifiers.forEach { it(drawable.style) }
         drawable.style.name = spanned
-        drawable
+        drawable to movable?.let { Movable(geometric as? Complex ?: error("Expected point"), it) }
     }
 }
 
@@ -65,9 +67,7 @@ fun ParseContext.parseApp(line: String): Pair<Reactive<Geometric>, String> = whe
         }
     line.startsWith("#") ->
         parseApp(line.substring(1).trimStart()).let {
-            check(it.first is Static && (it.first as Static<*>).value is Complex) { "Expected static point" }
-            movable.add(Movable((it.first as Static<*>).value as Complex,
-                line.substring(0, line.length - it.second.length)))
+            movableSource = line.substring(0, line.length - it.second.length)
             it
         }
     else -> parseAtom(line)

@@ -76,7 +76,7 @@ fun App(inputFile: File, mediaStore: MediaStore, textDrawer: TextDrawer, fullscr
             Mode.View ->
                 try { parse(input.value.text) } catch (e: Exception) { Static(listOf(Drawable {
                     text(-size.center + Offset(10f, 10f), listOf(e.toString()), Color.Black)
-                })) to listOf() }.let { (drawable, movable) ->
+                } to null)) }.let { drawable ->
                     ViewMode(
                         mediaStore,
                         textDrawer,
@@ -84,7 +84,6 @@ fun App(inputFile: File, mediaStore: MediaStore, textDrawer: TextDrawer, fullscr
                         fullscreen,
                         mode,
                         drawable,
-                        movable,
                         cursor,
                         tapped,
                         play,

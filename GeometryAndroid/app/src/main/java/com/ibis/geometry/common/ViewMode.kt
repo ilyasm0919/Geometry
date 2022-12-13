@@ -33,8 +33,7 @@ fun ColumnScope.ViewMode(
     input: MutableState<TextFieldValue>,
     fullscreen: Boolean,
     mode: MutableState<Mode>,
-    drawable: Reactive<List<Drawable>>,
-    movable: List<Movable>,
+    drawable: Reactive<List<Pair<Drawable, Movable?>>>,
     cursor: MutableState<Boolean>,
     tapped: MutableState<Offset>,
     play: MutableState<Boolean>,
@@ -92,9 +91,9 @@ fun ColumnScope.ViewMode(
         }
     }
 
-    var rmovable by remember(mode.value) { mutableStateOf<List<Movable>>(listOf()) }
-    LaunchedEffect(movable) {
-        rmovable = movable
+    var movable by remember(mode.value) { mutableStateOf(listOf<Movable>()) }
+    LaunchedEffect(drawable, time.value) {
+        movable = drawable(ReactiveInput(time.value)).map(Pair<Drawable, Movable?>::second).filterNotNull()
     }
     var chosen by remember(mode.value, fullscreen) { mutableStateOf<Int?>(null) }
     val bmp = ImageBitmap(size.width, size.height)
@@ -105,7 +104,7 @@ fun ColumnScope.ViewMode(
         fSize = fSize * 200f / fSize.minDimension
         try {
             CanvasDrawer(textDrawer, fSize, this).let {
-                drawable(ReactiveInput(time.value)).forEach(it::draw)
+                drawable(ReactiveInput(time.value)).map(Pair<Drawable, Movable?>::first).forEach(it::draw)
             }
         } catch (_: Exception) {}
         if (cursor.value) {
@@ -127,7 +126,7 @@ fun ColumnScope.ViewMode(
                 paint
             )
         } else if (chosen != null) {
-            drawCircle(rmovable[chosen!!].pos.toOffset(), 3f, Paint().apply {
+            drawCircle(movable[chosen!!].pos.toOffset(), 3f, Paint().apply {
                 color = Color.Red
                 style = PaintingStyle.Stroke
                 strokeWidth = 1f
@@ -141,11 +140,11 @@ fun ColumnScope.ViewMode(
             Screenshot.Png -> mediaStore.saveImage("png", bmp)
             Screenshot.Svg -> mediaStore.saveImage("svg") {
                 val drawer = SvgDrawer(size.toSize(), it.writer())
-                drawable(ReactiveInput(time.value)).forEach(drawer::draw)
+                drawable(ReactiveInput(time.value)).map(Pair<Drawable, Movable?>::first).forEach(drawer::draw)
                 drawer.finish()
             }
             is SvgVideo -> (screenshot as SvgVideo).frame {
-                drawable(ReactiveInput(time.value)).forEach(::draw)
+                drawable(ReactiveInput(time.value)).map(Pair<Drawable, Movable?>::first).forEach(::draw)
             }
         }
         if (screenshot !is SvgVideo) screenshot = Screenshot.No
@@ -155,14 +154,14 @@ fun ColumnScope.ViewMode(
         detectDragGestures({
             val value = (it - size.toSize().center) * scale
             tapped.value = value
-            if (!cursor.value) chosen = rmovable.indexOfFirst {
+            if (!cursor.value) chosen = movable.indexOfFirst {
                 (it.pos.toOffset() - value).getDistanceSquared() < 40f
             }.takeIf { it != -1 }
         }, { chosen = null }) { change, delta ->
             change.consume()
             tapped.value += delta * scale
             if (!cursor.value && chosen != null) {
-                val c = rmovable[chosen!!]
+                val c = movable[chosen!!]
                 input.value = TextFieldValue(
                     input.value.text.replaceFirst(
                         c.source,
