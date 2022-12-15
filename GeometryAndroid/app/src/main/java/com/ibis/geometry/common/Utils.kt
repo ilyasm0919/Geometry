@@ -179,6 +179,12 @@ fun nagel(t: Triangle): Complex {
     )
 }
 
+fun isogonal(p: Complex, t: Triangle) = circumcenter(Triangle(
+    p.symmetry(line(t.a, t.b)),
+    p.symmetry(line(t.b, t.c)),
+    p.symmetry(line(t.c, t.a)),
+))
+
 fun length(l: Segment) = (l.from - l.to).abs()
 
 fun normalize(a: Complex) = if (a == Complex.ZERO) Complex.ZERO else a / a.abs()

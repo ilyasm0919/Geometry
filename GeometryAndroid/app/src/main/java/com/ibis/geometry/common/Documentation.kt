@@ -61,6 +61,7 @@ val documentationText = listOf(
         euler_center(Triangle): Point
         gergonne(Triangle): Point
         nagel(Triangle): Point
+        isogonal(Point, Triangle): Point
     """,
     "Lines" to """
         midline(Segment): Line
@@ -95,6 +96,8 @@ val documentationText = listOf(
     "Algebra" to """
         re(Complex): Real
         im(Complex): Real
+        sqr(Complex): Complex
+        sqrt(Complex): Complex
         exp(Complex): Complex
         ln(Complex): Complex
         abs(Complex): Real

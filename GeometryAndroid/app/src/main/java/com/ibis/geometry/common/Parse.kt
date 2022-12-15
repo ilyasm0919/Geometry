@@ -55,7 +55,18 @@ fun ParseContext.parseSum(line: String) =
     parseInfix(line, ::parseProd, "+" to Complex::plus::precast, "-" to Complex::minus::precast)
 
 fun ParseContext.parseProd(line: String) =
-    parseInfix(line, ::parseApp, "*" to Complex::times::precast, "/" to Complex::div::precast)
+    parseInfix(line, ::parsePow, "*" to Complex::times::precast, "/" to Complex::div::precast)
+
+fun ParseContext.parsePow(init: String): Pair<Reactive<Geometric>, String> {
+    var (res, line) = parseApp(init)
+    line = line.trimStart()
+    while (line.startsWith("^")) {
+        val (pow, next) = parseReal(line.substring(1).trimStart()) ?: error("Expected number")
+        res = { it: Complex -> (it.ln()*pow).exp() }.precast(res)
+        line = next.trimStart()
+    }
+    return res to line
+}
 
 fun ParseContext.parseApp(line: String): Pair<Reactive<Geometric>, String> = when {
     line.startsWith("~") ->
@@ -130,9 +141,12 @@ fun function(name: String, args: Collection<Reactive<Geometric>>): Reactive<Geom
         "euler_circle" -> reactive { eulerCircle(triangle()) }
         "gergonne" -> reactive { gergonne(triangle()) }
         "nagel" -> reactive { nagel(triangle()) }
+        "isogonal" -> reactive { isogonal(point(), triangle()) }
         "circumcircle" -> reactive { circumcircle(triangle()) }
         "re" -> reactive { point().re.real() }
         "im" -> reactive { point().im.real() }
+        "sqr" -> reactive { point().let { it * it } }
+        "sqrt" -> reactive { point().sqrt() }
         "exp" -> reactive { point().exp() }
         "ln" -> reactive { point().ln() }
         "abs" -> reactive { point().abs().real() }
