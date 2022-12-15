@@ -4,6 +4,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
@@ -45,6 +46,14 @@ fun EditMode(
             hide()
         }) {
             MenuItem(Icons.Default.MenuBook, "Documentation")
+        }
+        templates.forEach {
+            DropdownMenuItem({
+                input.value = TextFieldValue(it.second.trimIndent())
+                hide()
+            }) {
+                Text(it.first)
+            }
         }
     }
     TextField(input.value, {

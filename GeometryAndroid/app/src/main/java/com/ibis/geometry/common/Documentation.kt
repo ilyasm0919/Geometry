@@ -15,90 +15,91 @@ import com.ibis.geometry.common.theme.Typography
 
 val documentationText = listOf(
     "Style modifiers" to """
-hide
-dot
-dash
-dash_dot
-fill
-""",
+        hide
+        dot
+        dash
+        dash_dot
+        fill
+    """,
     "Color modifiers" to """
-red
-green
-blue
-orange
-violet
-white
-gray
-black
-""",
+        red
+        green
+        blue
+        orange
+        violet
+        white
+        gray
+        black
+    """,
     "Constructors" to """
-point(Point): Point
-line(Line): Line
-segment(Segment): Segment
-circle(Circle): Circle
-triangle(Triangle): Triangle
-polygon(Polygon): Polygon
-""",
+        point(Point): Point
+        line(Line): Line
+        segment(Segment): Segment
+        circle(Circle): Circle
+        triangle(Triangle): Triangle
+        polygon(Polygon): Polygon
+    """,
     "Intersections" to """
-intersect(Line, Line): Point
-cintersect(Point, Line, Circle): Point
-cintersect1(Line, Circle): Point
-cintersect2(Line, Circle): Point
-ccintersect(Point, Circle, Circle): Point
-ccintersect1(Circle, Circle): Point
-ccintersect2(Circle, Circle): Point
-""",
+        intersect(Line, Line): Point
+        cintersect(Point, Line, Circle): Point
+        cintersect1(Line, Circle): Point
+        cintersect2(Line, Circle): Point
+        ccintersect(Point, Circle, Circle): Point
+        ccintersect1(Circle, Circle): Point
+        ccintersect2(Circle, Circle): Point
+    """,
     "Points" to """
-midpoint(Segment): Point
-divide(Complex, Segment): Point
-project(Point, Line): Point
-cproject(Point, Circle): Point
-centroid(Polygon): Point
-circumcenter(Triangle): Point
-orthocenter(Triangle): Point
-incenter(Triangle): Point
-excenter(Point, Point, Point): Point
-""",
+        midpoint(Segment): Point
+        divide(Complex, Segment): Point
+        project(Point, Line): Point
+        cproject(Point, Circle): Point
+        centroid(Polygon): Point
+        circumcenter(Triangle): Point
+        orthocenter(Triangle): Point
+        incenter(Triangle): Point
+        excenter(Point, Point, Point): Point
+    """,
     "Lines" to """
-midline(Segment): Line
-parallel(Point, Line): Line
-perpendicular(Point, Line): Line
-bisector(Point, Point, Point): Line
-exbisector(Point, Point, Point): Line
-""",
+        midline(Segment): Line
+        parallel(Point, Line): Line
+        perpendicular(Point, Line): Line
+        bisector(Point, Point, Point): Line
+        exbisector(Point, Point, Point): Line
+    """,
     "Circles" to """
-radius(Circle): Real
-center(Circle): Point
-circumcircle(Triangle): Circle
-tangentPoint(Point, Point, Circle): Point
-tangentPoint1(Point, Circle): Point
-tangentPoint2(Point, Circle): Point
-tangent(Point, Point, Circle): Line
-tangent1(Point, Circle): Line
-tangent2(Point, Circle): Line
-""",
+        radius(Circle): Real
+        center(Circle): Point
+        circumcircle(Triangle): Circle
+        tangentPoint(Point, Point, Circle): Point
+        tangentPoint1(Point, Circle): Point
+        tangentPoint2(Point, Circle): Point
+        tangent(Point, Point, Circle): Line
+        tangent1(Point, Circle): Line
+        tangent2(Point, Circle): Line
+    """,
     "Transformations" to """
-symmetry(Object, Line): Object
-translation(Object, Complex): Object
-homothety(Object, Point, Complex): Object
-inversion(Object, Circle): Object
-""",
+        symmetry(Object, Line): Object
+        translation(Object, Complex): Object
+        homothety(Object, Point, Complex): Object
+        inversion(Object, Circle): Object
+    """,
     "Algebra" to """
-re(Complex): Real
-im(Complex): Real
-exp(Complex): Complex
-ln(Complex): Complex
-abs(Complex): Real
-length(Segment): Real
-normalize(Complex): Complex
-dir(Segment): Complex
-""",
+        re(Complex): Real
+        im(Complex): Real
+        exp(Complex): Complex
+        ln(Complex): Complex
+        abs(Complex): Real
+        length(Segment): Real
+        normalize(Complex): Complex
+        dir(Segment): Complex
+    """,
     "Special" to """
-time(): Natural
-line_trace(Point): Line
-circle_trace(Point): Circle
-assert(Point, Point): Point
-""",
+        time(): Natural
+        choose(Object, Real): Point
+        line_trace(Point): Line
+        circle_trace(Point): Circle
+        assert(Point, Point): Point
+    """,
 )
 
 @Composable
@@ -115,7 +116,7 @@ fun documentation(): () -> Unit {
             documentationText.forEach { (title, content) ->
                 var expanded by remember { mutableStateOf(false) }
                 Text(title, Modifier.clickable { expanded = !expanded }, style = Typography.h6)
-                if (expanded) Text(content.trim())
+                if (expanded) Text(content.trimIndent())
             }
         }
     }

@@ -41,7 +41,7 @@ fun ccintersect(option: TrinomialOption, c1: Circle, c2: Circle) = (c2.center - 
 
 fun midpoint(l: Segment) = (l.from + l.to) / 2
 
-fun divide(alpha: Complex, l: Segment) = l.from * (1.real() - alpha) + l.to * alpha
+fun divide(alpha: Complex, l: Segment) = l.from * (1 - alpha) + l.to * alpha
 
 // (z - a) * (~z - ~a) = (z - b) * (~z - ~b)
 // z * (~b - ~a) + ~z * (b - a) + (norm(a) - norm(b)) = 0

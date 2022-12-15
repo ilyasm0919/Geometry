@@ -59,7 +59,7 @@ data class Complex(val re: Float, val im: Float): Geometric() {
 
     override fun inversion(c: Circle) = c.radiusSqr / (this - c.center).conj() + c.center
 
-//    override fun choose(rand: Random) = error("Choose from point")
+    override fun choose(time: Float) = this
 
     override fun toDrawable() = Drawable {
         if (it.border == Border.No) return@Drawable

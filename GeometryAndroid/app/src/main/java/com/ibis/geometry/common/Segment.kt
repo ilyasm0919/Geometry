@@ -1,5 +1,8 @@
 package com.ibis.geometry.common
 
+import java.lang.Math.PI
+import kotlin.math.sin
+
 data class Segment(val from: Complex, val to: Complex): Geometric() {
     override fun symmetry(l: Line) = Segment(from.symmetry(l), to.symmetry(l))
 
@@ -9,7 +12,7 @@ data class Segment(val from: Complex, val to: Complex): Geometric() {
 
     override fun inversion(c: Circle) = line(from, to).inversion(c)
 
-//    override fun choose(rand: Random) = divide(rand.nextFloat().real(), this)
+    override fun choose(time: Float) = divide(sin(time * 2 * PI).real() / 2 + 0.5f, this)
 
     override fun toDrawable() = Drawable {
         line(from.toOffset(), to.toOffset(), it)

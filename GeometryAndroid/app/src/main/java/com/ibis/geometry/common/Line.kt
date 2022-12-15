@@ -25,7 +25,7 @@ data class Line(val coef: Complex, val free: Float): Geometric() {
     }?.let { coef * c.radiusSqr / it }?.let { Circle(c.center - it, it.norm) }
         ?: this
 
-//    override fun choose(rand: Random) = error("Choose from line")
+    override fun choose(time: Float) = error("Choose from line")
 
     override fun toDrawable() = Drawable { style ->
         val epsilon = 0.001f

@@ -146,6 +146,7 @@ fun function(name: String, args: Collection<Reactive<Geometric>>): Reactive<Geom
             check(args.isEmpty()) { "Unexpected arguments" }
             Dynamic { time.real() }
         }
+        "choose" -> reactive { geometric().choose(point().abs()) }
         "line_trace" -> Static(args.single().let {
             line(
                 it(ReactiveInput(3658)) as? Complex ?: error("Expected point"),

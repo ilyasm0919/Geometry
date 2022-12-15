@@ -12,16 +12,5 @@ sealed class AbstractPolygon: Geometric() {
         polygon(points.map(Complex::toOffset), it)
     }
 
-//    override fun choose(rand: Random): Geometric { // Only for convex polygons
-//        var res = area() * rand.nextFloat()
-//        var i = 0
-//        while (res > 0 && i < points.size - 1) {
-//            i++
-//            res -= Triangle(points[0], points[i], points[i + 1]).area()
-//        }
-//        return Triangle(points[0], points[i], points[i + 1]).choose(rand)
-//    }
-//    fun area() = { x: Complex, y: Complex -> x.re * y.im - x.im * y.re }.let {
-//        abs(points.zipWithNext(it).sum() + it(points.last(), points.first()))
-//    }
+    override fun choose(time: Float) = error("Choose from polygon")
 }

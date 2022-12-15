@@ -1,5 +1,6 @@
 package com.ibis.geometry.common
 
+import kotlin.math.PI
 import kotlin.math.sqrt
 
 data class Circle(val center: Complex, val radiusSqr: Float): Geometric() {
@@ -28,8 +29,8 @@ data class Circle(val center: Complex, val radiusSqr: Float): Geometric() {
     } ?: Line(c.center - center,
         c.radiusSqr + (c.center * center.conj()).re * 2 - c.center.norm * 2)
 
-//    override fun choose(rand: Random) =
-//        center + (rand.nextFloat().imagine() * 2 * PI).exp() * sqrt(radiusSqr)
+    override fun choose(time: Float) =
+        center + (time * 2 * PI).imagine().exp() * sqrt(radiusSqr)
 
     override fun toDrawable() = Drawable {
         circle(center.toOffset(), sqrt(radiusSqr), it)
