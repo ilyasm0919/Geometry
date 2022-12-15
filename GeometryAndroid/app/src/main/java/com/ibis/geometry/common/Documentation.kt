@@ -58,6 +58,9 @@ val documentationText = listOf(
         orthocenter(Triangle): Point
         incenter(Triangle): Point
         excenter(Point, Point, Point): Point
+        euler_center(Triangle): Point
+        gergonne(Triangle): Point
+        nagel(Triangle): Point
     """,
     "Lines" to """
         midline(Segment): Line
@@ -65,11 +68,16 @@ val documentationText = listOf(
         perpendicular(Point, Line): Line
         bisector(Point, Point, Point): Line
         exbisector(Point, Point, Point): Line
+        euler_line(Triangle): Line
     """,
     "Circles" to """
         radius(Circle): Real
         center(Circle): Point
+        diameter_circle(Segment): Circle
         circumcircle(Triangle): Circle
+        incircle(Triangle): Circle
+        excircle(Point, Point, Point): Circle
+        euler_circle(Triangle): Circle
         tangentPoint(Point, Point, Circle): Point
         tangentPoint1(Point, Circle): Point
         tangentPoint2(Point, Circle): Point
@@ -82,6 +90,7 @@ val documentationText = listOf(
         translation(Object, Complex): Object
         homothety(Object, Point, Complex): Object
         inversion(Object, Circle): Object
+        midtriangle(Triangle): Triangle
     """,
     "Algebra" to """
         re(Complex): Real

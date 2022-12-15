@@ -116,6 +116,10 @@ fun incenter(t: Triangle): Complex {
     return (t.a * sa * sc.conj() - t.c * sa.conj() * sc - sa * sc * (t.a - t.c).norm / sb.norm) / (sa * sc.conj() - sa.conj() * sc)
 }
 
+fun incircle(t: Triangle) = incenter(t).let {
+    circle(it, project(it, line(t.a, t.c)))
+}
+
 // (z - a) * ~sqrt(b - a) * ~sqrt(c - a) = (-~z + ~a) * sqrt(b - a) * sqrt(c - a)
 // (z - c) * ~sqrt(b - c) * ~sqrt(a - c) = (-~z + ~c) * sqrt(b - c) * sqrt(a - c)
 // (z - a) * ~sc * ~sb = (~z - ~a) * sc * sb
@@ -131,9 +135,49 @@ fun excenter(a: Complex, b: Complex, c: Complex): Complex {
     return (a * sa * sc.conj() - c * sa.conj() * sc + sa * sc * (a - c).norm / sb.norm) / (sa * sc.conj() - sa.conj() * sc)
 }
 
+fun excircle(a: Complex, b: Complex, c: Complex) = excenter(a, b, c).let {
+    circle(it, project(it, line(a, c)))
+}
+
+fun eulerLine(t: Triangle) = line(centroid(t), circumcenter(t))
+
 fun circle(center: Complex, point: Complex) = Circle(center, (point - center).norm)
 
 fun circumcircle(t: Triangle) = circle(circumcenter(t), t.a)
+
+fun diameterCircle(l: Segment) = circle(midpoint(l), l.from)
+
+fun midtriangle(t: Triangle) = Triangle((t.a + t.b) / 2, (t.b + t.c) / 2, (t.c + t.a) / 2)
+
+fun eulerCenter(t: Triangle) = circumcenter(midtriangle(t))
+
+fun eulerCircle(t: Triangle) = circumcircle(midtriangle(t))
+
+fun gergonne(t: Triangle): Complex {
+    val la = (t.b - t.c).abs()
+    val lb = (t.c - t.a).abs()
+    val lc = (t.a - t.b).abs()
+    val pa = lb + lc - la
+    val pb = lc + la - lb
+    val pc = la + lb - lc
+    return intersect(
+        line(t.a, divide(pb.real() / pc, Segment(t.b, t.c))),
+        line(t.b, divide(pa.real() / pc, Segment(t.a, t.c))),
+    )
+}
+
+fun nagel(t: Triangle): Complex {
+    val la = (t.b - t.c).abs()
+    val lb = (t.c - t.a).abs()
+    val lc = (t.a - t.b).abs()
+    val pa = lb + lc - la
+    val pb = lc + la - lb
+    val pc = la + lb - lc
+    return intersect(
+        line(t.a, divide(pb.real() / pc, Segment(t.c, t.b))),
+        line(t.b, divide(pa.real() / pc, Segment(t.c, t.a))),
+    )
+}
 
 fun length(l: Segment) = (l.from - l.to).abs()
 

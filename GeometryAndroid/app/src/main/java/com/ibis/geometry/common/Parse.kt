@@ -120,7 +120,16 @@ fun function(name: String, args: Collection<Reactive<Geometric>>): Reactive<Geom
         "circumcenter" -> reactive { circumcenter(triangle()) }
         "orthocenter" -> reactive { orthocenter(triangle()) }
         "incenter" -> reactive { incenter(triangle()) }
+        "incircle" -> reactive { incircle(triangle()) }
         "excenter" -> reactive { excenter(point(), point(), point()) }
+        "excircle" -> reactive { excircle(point(), point(), point()) }
+        "euler_line" -> reactive { eulerLine(triangle()) }
+        "diameter_circle" -> reactive { diameterCircle(segment()) }
+        "midtriangle" -> reactive { midtriangle(triangle()) }
+        "euler_center" -> reactive { eulerCenter(triangle()) }
+        "euler_circle" -> reactive { eulerCircle(triangle()) }
+        "gergonne" -> reactive { gergonne(triangle()) }
+        "nagel" -> reactive { nagel(triangle()) }
         "circumcircle" -> reactive { circumcircle(triangle()) }
         "re" -> reactive { point().re.real() }
         "im" -> reactive { point().im.real() }
