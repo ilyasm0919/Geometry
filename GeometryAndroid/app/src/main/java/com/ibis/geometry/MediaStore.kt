@@ -25,11 +25,13 @@ value class MediaStore(val resolver: ContentResolver) : com.ibis.geometry.common
             if (pend && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
                 put(MediaStore.Images.Media.IS_PENDING, 1)
         }
-        values.clear()
-        if (pend && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-            values.put(MediaStore.Images.Media.IS_PENDING, 0)
         val uri = resolver.insert(collection, values)!!
-        return resolver.openOutputStream(uri)!! to { resolver.update(uri, values, null, null) }
+        values.clear()
+        return resolver.openOutputStream(uri)!! to {
+            if (pend && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                values.put(MediaStore.Images.Media.IS_PENDING, 0)
+            resolver.update(uri, values, null, null)
+        }
     }
 
     override fun saveImage(ext: String, content: (OutputStream) -> Unit) {
