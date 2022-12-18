@@ -5,6 +5,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import java.io.OutputStreamWriter
+import kotlin.math.PI
+import kotlin.math.abs
 
 class SvgDrawer(override val size: Size, val writer: OutputStreamWriter): Drawer {
     private fun writeOpen(tag: String, vararg attributes: Pair<String, Any>) {
@@ -101,6 +103,21 @@ class SvgDrawer(override val size: Size, val writer: OutputStreamWriter): Drawer
                 }
             }
         }
+    }
+
+    override fun angle(center: Offset, from: Float, to: Float, style: Style) = style.styled {
+        val start = center + from.imagine().exp().toOffset() * 10f
+        val end = center + to.imagine().exp().toOffset() * 10f
+        write(
+            "path",
+            "d" to """
+                M ${center.x} ${center.y}
+                L ${start.x} ${start.y}
+                A 10 10 0 ${if (abs(to - from) <= PI) 0 else 1} ${if (from <= to) 0 else 1} ${end.x} ${end.y}
+                Z
+            """.trimIndent(),
+            *it
+        )
     }
 }
 

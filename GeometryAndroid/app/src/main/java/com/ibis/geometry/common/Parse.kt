@@ -111,6 +111,9 @@ fun function(name: String, args: Collection<Reactive<Geometric>>): Reactive<Geom
         "circle" -> reactive { circle() }
         "triangle" -> reactive { triangle() }
         "polygon" -> reactive { polygon() }
+        "angle" -> reactive { angle().normal() }
+        "clockwise" -> reactive { angle().clockwise() }
+        "counterclockwise" -> reactive { angle().counterclockwise() }
         "intersect" -> reactive { intersect(line(), line()) }
         "cintersect" -> reactive { cintersect(TrinomialOption.RootNot(point()), line(), circle()) }
         "cintersect1" -> reactive { cintersect(TrinomialOption.Root1, line(), circle()) }
@@ -125,8 +128,8 @@ fun function(name: String, args: Collection<Reactive<Geometric>>): Reactive<Geom
         "perpendicular" -> reactive { perpendicular(point(), line()) }
         "project" -> reactive { project(point(), line()) }
         "cproject" -> reactive { cproject(point(), circle()) }
-        "bisector" -> reactive { bisector(point(), point(), point()) }
-        "exbisector" -> reactive { exbisector(point(), point(), point()) }
+        "bisector" -> reactive { bisector(angle()) }
+        "exbisector" -> reactive { exbisector(angle()) }
         "centroid" -> reactive { centroid(polygon()) }
         "circumcenter" -> reactive { circumcenter(triangle()) }
         "orthocenter" -> reactive { orthocenter(triangle()) }

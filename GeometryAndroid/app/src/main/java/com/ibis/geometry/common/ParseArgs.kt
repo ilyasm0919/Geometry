@@ -50,3 +50,9 @@ fun ArgParser.circle() = when (val arg = nextArg()) {
     is Complex -> circle(arg, point())
     else -> error("Expected circle")
 }
+
+fun ArgParser.angle() = when (val arg = nextArg()) {
+    is Angle -> arg
+    is Complex -> angle(arg, point(), point())
+    else -> error("Expected angle")
+}

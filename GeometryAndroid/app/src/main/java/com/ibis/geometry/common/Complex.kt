@@ -10,6 +10,8 @@ data class Complex(val re: Float, val im: Float): Geometric() {
 
     val norm get() = re * re + im * im
 
+    fun arg() = atan2(im, re)
+
     fun abs() = sqrt(norm)
 
     operator fun unaryMinus() = Complex(-re, -im)
@@ -47,7 +49,7 @@ data class Complex(val re: Float, val im: Float): Geometric() {
 
     fun exp() = Complex(cos(im), sin(im)) * exp(re)
 
-    fun ln() = Complex(ln(abs()), atan2(im, re))
+    fun ln() = Complex(ln(abs()), arg())
 
     fun toOffset() = Offset(re, -im)
 

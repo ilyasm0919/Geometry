@@ -1,5 +1,6 @@
 package com.ibis.geometry.common
 
+import kotlin.math.PI
 import kotlin.math.sqrt
 
 // (z - a) * (~a - ~b) = (~z - ~a) * (a - b)
@@ -7,6 +8,8 @@ import kotlin.math.sqrt
 // z * (~a - ~b) * (-i) + ~z * (a - b) * i + (~a * b * i + a * ~b * (-i)) = 0
 fun line(a: Complex, b: Complex) =
     Line((a - b) * Complex.I, (a.conj() * b * Complex.I).re * 2)
+
+fun angle(a: Complex, b: Complex, c: Complex) = Angle(b, (a - b).arg(), (c - b).arg())
 
 // z * ~a + ~z * a + b = 0
 // z * ~c + ~z * c + d = 0
@@ -65,15 +68,12 @@ fun cproject(a: Complex, c: Circle) = (a - c.center).let {
     it * sqrt(c.radiusSqr / it.norm) + c.center
 }
 
-// (z - b) * ~sqrt((a - b) * (c - b)) = (~z - ~b) * sqrt((a - b) * (c - b))
-// (z - b) * ~s * (-i) + (~z - ~b) * s * i = 0
-fun bisector(a: Complex, b: Complex, c: Complex) = ((a - b) * (c - b)).sqrt().let {
-    Line(it * Complex.I, -(b.conj() * it * Complex.I).re * 2)
+fun bisector(a: Angle) = (a.to + a.from + PI).times(0.5.imagine()).exp().let {
+    Line(it, -(a.center * it.conj()).re*2)
 }
 
-// (z - b) * ~sqrt((a - b) * (c - b)) + (~z - ~b) * sqrt((a - b) * (c - b)) = 0
-fun exbisector(a: Complex, b: Complex, c: Complex) = ((a - b) * (c - b)).sqrt().let {
-    Line(it, -(b.conj() * it).re * 2)
+fun exbisector(a: Angle) = (a.to + a.from).times(0.5.imagine()).exp().let {
+    Line(it, -(a.center * it.conj()).re*2)
 }
 
 fun centroid(p: AbstractPolygon) = p.points.reduce(Complex::plus) / p.points.size

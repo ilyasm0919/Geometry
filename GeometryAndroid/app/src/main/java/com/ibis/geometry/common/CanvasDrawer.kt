@@ -1,6 +1,7 @@
 package com.ibis.geometry.common
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 
@@ -35,6 +36,10 @@ class CanvasDrawer(private val textDrawer: TextDrawer, override val size: Size, 
 
     override fun text(pos: Offset, text: List<String>, color: Color) =
         textDrawer.text(canvas, pos, text, color)
+
+    override fun angle(center: Offset, from: Float, to: Float, style: Style) = style.styled {
+        canvas.drawArcRad(Rect(center, 10f), -from, from - to, true, it)
+    }
 }
 
 private fun Style.styled(action: (Paint) -> Unit) {

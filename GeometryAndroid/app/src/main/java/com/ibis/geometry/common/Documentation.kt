@@ -39,6 +39,7 @@ val documentationText = listOf(
         circle(Circle): Circle
         triangle(Triangle): Triangle
         polygon(Polygon): Polygon
+        angle(Angle): Angle
     """,
     "Intersections" to """
         intersect(Line, Line): Point
@@ -68,9 +69,13 @@ val documentationText = listOf(
         midline(Segment): Line
         parallel(Point, Line): Line
         perpendicular(Point, Line): Line
-        bisector(Point, Point, Point): Line
-        exbisector(Point, Point, Point): Line
         euler_line(Triangle): Line
+    """,
+    "Angles" to """
+        clockwise(Angle): Angle
+        counterclockwise(Angle): Angle
+        bisector(Angle): Line
+        exbisector(Angle): Line
     """,
     "Circles" to """
         radius(Circle): Real
