@@ -42,6 +42,18 @@ fun ColumnScope.ViewMode(
     val requester = remember { FocusRequester() }
     var screenshot by remember { mutableStateOf<Screenshot>(Screenshot.No) }
     var size by remember { mutableStateOf(IntSize(100, 100)) }
+    var movable by remember { mutableStateOf(listOf<Movable>()) }
+    val currentDrawable = remember(drawable, time.value) {
+        try {
+            drawable(ReactiveInput(time.value)).unzip().let {
+                movable = it.second.filterNotNull()
+                it.first
+            }
+        } catch(e: Exception) { listOf(Drawable {
+            text(-size.toSize().center + Offset(10f, 10f), listOf(e.toString()), Color.Black)
+        }) }
+    }
+    var chosen by remember(mode.value, fullscreen) { mutableStateOf<Int?>(null) }
 
     fun startVideo() {
         screenshot = SvgVideo(SvgDrawer(size.toSize(), mediaStore.initVideo("svg").writer()), 18.451, 0)
@@ -91,11 +103,6 @@ fun ColumnScope.ViewMode(
         }
     }
 
-    var movable by remember(mode.value) { mutableStateOf(listOf<Movable>()) }
-    LaunchedEffect(drawable, time.value) {
-        movable = drawable(ReactiveInput(time.value)).map(Pair<Drawable, Movable?>::second).filterNotNull()
-    }
-    var chosen by remember(mode.value, fullscreen) { mutableStateOf<Int?>(null) }
     val bmp = ImageBitmap(size.width, size.height)
     Canvas(bmp).apply {
         var fSize = size.toSize()
@@ -104,7 +111,7 @@ fun ColumnScope.ViewMode(
         fSize = fSize * 200f / fSize.minDimension
         try {
             CanvasDrawer(textDrawer, fSize, this).let {
-                drawable(ReactiveInput(time.value)).map(Pair<Drawable, Movable?>::first).forEach(it::draw)
+                currentDrawable.forEach(it::draw)
             }
         } catch (_: Exception) {}
         if (cursor.value) {
@@ -140,11 +147,11 @@ fun ColumnScope.ViewMode(
             Screenshot.Png -> mediaStore.saveImage("png", bmp)
             Screenshot.Svg -> mediaStore.saveImage("svg") {
                 val drawer = SvgDrawer(size.toSize(), it.writer())
-                drawable(ReactiveInput(time.value)).map(Pair<Drawable, Movable?>::first).forEach(drawer::draw)
+                currentDrawable.forEach(drawer::draw)
                 drawer.finish()
             }
             is SvgVideo -> (screenshot as SvgVideo).frame {
-                drawable(ReactiveInput(time.value)).map(Pair<Drawable, Movable?>::first).forEach(::draw)
+                currentDrawable.forEach(::draw)
             }
         }
         if (screenshot !is SvgVideo) screenshot = Screenshot.No
