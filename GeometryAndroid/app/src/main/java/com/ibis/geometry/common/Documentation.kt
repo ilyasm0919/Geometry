@@ -20,6 +20,7 @@ val documentationText = listOf(
         dash
         dash_dot
         fill
+        hide_label
     """,
     "Color modifiers" to """
         red

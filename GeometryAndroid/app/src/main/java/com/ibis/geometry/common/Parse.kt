@@ -30,8 +30,8 @@ fun ParseContext.parseLine(init: String): Reactive<Pair<Drawable, Movable?>> {
     movableSource = null
     return res.map { geometric ->
         val drawable = geometric.toDrawable()
-        modifiers.forEach { it(drawable.style) }
         drawable.style.name = spanned
+        modifiers.forEach { it(drawable.style) }
         drawable to movable?.let { Movable(geometric as? Complex ?: error("Expected point"), it) }
     }
 }
@@ -219,6 +219,7 @@ fun parseModifier(line: String): Pair<(Style) -> Unit, String> = parseWord(line)
         "dash" -> set { border = Border.Dash }
         "dash_dot" -> set { border = Border.DashDot }
         "fill" -> set { fill = true }
+        "hide_label" -> set { name = null }
         "red" -> set { color = Color(0xFFB20000) }
         "green" -> set { color = Color(0xFF00B200) }
         "blue" -> set { color = Color(0xFF0000B2) }
