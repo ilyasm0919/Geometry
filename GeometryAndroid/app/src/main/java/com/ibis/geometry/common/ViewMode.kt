@@ -54,6 +54,46 @@ fun ColumnScope.ViewMode(
         }) }
     }
     var chosen by remember(mode.value, fullscreen) { mutableStateOf<Int?>(null) }
+    val bmp = remember(size, currentDrawable, cursor.value, chosen) {
+        ImageBitmap(size.width, size.height).also { bmp ->
+            Canvas(bmp).apply {
+                var fSize = size.toSize()
+                translate(fSize.width / 2, fSize.height / 2)
+                scale(fSize.minDimension / 200)
+                fSize = fSize * 200f / fSize.minDimension
+                try {
+                    CanvasDrawer(textDrawer, fSize, this).let {
+                        currentDrawable.forEach(it::draw)
+                    }
+                } catch (_: Exception) {}
+                if (cursor.value) {
+                    val paint = Paint().apply {
+                        color = Color.Black
+                        pathEffect = PathEffect.dashPathEffect(
+                            floatArrayOf(1f, 1f),
+                            0f
+                        )
+                    }
+                    drawLine(
+                        Offset(tapped.value.x, -fSize.height / 2),
+                        Offset(tapped.value.x, fSize.height / 2),
+                        paint
+                    )
+                    drawLine(
+                        Offset(-fSize.width / 2, tapped.value.y),
+                        Offset(fSize.width / 2, tapped.value.y),
+                        paint
+                    )
+                } else if (chosen != null) {
+                    drawCircle(movable[chosen!!].pos.toOffset(), 3f, Paint().apply {
+                        color = Color.Red
+                        style = PaintingStyle.Stroke
+                        strokeWidth = 1f
+                    })
+                }
+            }
+        }
+    }
 
     fun startVideo() {
         screenshot = SvgVideo(SvgDrawer(size.toSize(), mediaStore.initVideo("svg").writer()), 18.451, 0)
@@ -103,43 +143,6 @@ fun ColumnScope.ViewMode(
         }
     }
 
-    val bmp = ImageBitmap(size.width, size.height)
-    Canvas(bmp).apply {
-        var fSize = size.toSize()
-        translate(fSize.width / 2, fSize.height / 2)
-        scale(fSize.minDimension / 200)
-        fSize = fSize * 200f / fSize.minDimension
-        try {
-            CanvasDrawer(textDrawer, fSize, this).let {
-                currentDrawable.forEach(it::draw)
-            }
-        } catch (_: Exception) {}
-        if (cursor.value) {
-            val paint = Paint().apply {
-                color = Color.Black
-                pathEffect = PathEffect.dashPathEffect(
-                    floatArrayOf(1f, 1f),
-                    0f
-                )
-            }
-            drawLine(
-                Offset(tapped.value.x, -fSize.height / 2),
-                Offset(tapped.value.x, fSize.height / 2),
-                paint
-            )
-            drawLine(
-                Offset(-fSize.width / 2, tapped.value.y),
-                Offset(fSize.width / 2, tapped.value.y),
-                paint
-            )
-        } else if (chosen != null) {
-            drawCircle(movable[chosen!!].pos.toOffset(), 3f, Paint().apply {
-                color = Color.Red
-                style = PaintingStyle.Stroke
-                strokeWidth = 1f
-            })
-        }
-    }
     LaunchedEffect(play.value, time.value, screenshot) {
         if (play.value) time.value++
         when (screenshot) {
@@ -158,8 +161,8 @@ fun ColumnScope.ViewMode(
     }
     val cursorHandler = Modifier.pointerInput(cursor.value, mode.value, fullscreen) {
         val scale = 200 / size.toSize().minDimension
-        detectDragGestures({
-            val value = (it - size.toSize().center) * scale
+        detectDragGestures({ offset ->
+            val value = (offset - size.toSize().center) * scale
             tapped.value = value
             if (!cursor.value) chosen = movable.indexOfFirst {
                 (it.pos.toOffset() - value).getDistanceSquared() < 40f
@@ -224,7 +227,7 @@ fun ColumnScope.ViewMode(
     if (cursor.value) Text("%.1f%s%.1fi".format(
         Locale.ENGLISH,
         tapped.value.x, if (tapped.value.y >= 0) "" else "+", -tapped.value.y))
-    LaunchedEffect(null) {
+    LaunchedEffect(mode.value) {
         requester.requestFocus()
     }
 }
