@@ -93,112 +93,11 @@ fun ParseContext.parseAtom(line: String): Pair<Reactive<Geometric>, String> =
                 { parseSum(it).mapFst(::listOf) }, "," to { a, b -> a + b }
             )
             check(next2.startsWith(")")) { "Expected ')'" }
-            function(word, args) to next2.substring(1).trimStart()
+            functions.find { it.name == word }?.parser?.invoke(args)?.to(next2.substring(1).trimStart())
         }
         else names[word]?.to(next) ?: error("Name not found: $word")
     } ?: parseComplex(line)?.let { (res, next) -> Static(res) to next.trimStart() }
     ?: error("Parsing failed: $line")
-
-fun function(name: String, args: Collection<Reactive<Geometric>>): Reactive<Geometric> {
-    fun reactive(action: ArgParser.() -> Geometric) = args.traverse {
-        parseArgs(it, action)
-    }
-    @Suppress("ComplexRedundantLet")
-    return when (name) {
-        "point" -> reactive { point() }
-        "line" -> reactive { line() }
-        "segment" -> reactive { segment() }
-        "circle" -> reactive { circle() }
-        "triangle" -> reactive { triangle() }
-        "polygon" -> reactive { polygon() }
-        "angle" -> reactive { angle().normal() }
-        "clockwise" -> reactive { angle().clockwise() }
-        "counterclockwise" -> reactive { angle().counterclockwise() }
-        "intersect" -> reactive { intersect(line(), line()) }
-        "cintersect" -> reactive { cintersect(TrinomialOption.RootNot(point()), line(), circle()) }
-        "cintersect1" -> reactive { cintersect(TrinomialOption.Root1, line(), circle()) }
-        "cintersect2" -> reactive { cintersect(TrinomialOption.Root2, line(), circle()) }
-        "ccintersect" -> reactive { ccintersect(TrinomialOption.RootNot(point()), circle(), circle()) }
-        "ccintersect1" -> reactive { ccintersect(TrinomialOption.Root1, circle(), circle()) }
-        "ccintersect2" -> reactive { ccintersect(TrinomialOption.Root2, circle(), circle()) }
-        "midpoint" -> reactive { midpoint(segment()) }
-        "divide" -> reactive { divide(point(), segment()) }
-        "midline" -> reactive { midline(segment()) }
-        "parallel" -> reactive { parallel(point(), line()) }
-        "perpendicular" -> reactive { perpendicular(point(), line()) }
-        "polar" -> reactive { polar(point(), circle()) }
-        "pole" -> reactive { pole(line(), circle()) }
-        "project" -> reactive { project(point(), line()) }
-        "cproject" -> reactive { cproject(point(), circle()) }
-        "bisector" -> reactive { bisector(angle()) }
-        "exbisector" -> reactive { exbisector(angle()) }
-        "centroid" -> reactive { centroid(polygon()) }
-        "circumcenter" -> reactive { circumcenter(triangle()) }
-        "orthocenter" -> reactive { orthocenter(triangle()) }
-        "incenter" -> reactive { incenter(triangle()) }
-        "incircle" -> reactive { incircle(triangle()) }
-        "excenter" -> reactive { excenter(point(), point(), point()) }
-        "excircle" -> reactive { excircle(point(), point(), point()) }
-        "euler_line" -> reactive { eulerLine(triangle()) }
-        "diameter_circle" -> reactive { diameterCircle(segment()) }
-        "midtriangle" -> reactive { midtriangle(triangle()) }
-        "euler_center" -> reactive { eulerCenter(triangle()) }
-        "euler_circle" -> reactive { eulerCircle(triangle()) }
-        "gergonne" -> reactive { gergonne(triangle()) }
-        "nagel" -> reactive { nagel(triangle()) }
-        "isogonal" -> reactive { isogonal(point(), triangle()) }
-        "circumcircle" -> reactive { circumcircle(triangle()) }
-        "re" -> reactive { point().re.real() }
-        "im" -> reactive { point().im.real() }
-        "sqr" -> reactive { point().let { it * it } }
-        "sqrt" -> reactive { point().sqrt() }
-        "exp" -> reactive { point().exp() }
-        "ln" -> reactive { point().ln() }
-        "abs" -> reactive { point().abs().real() }
-        "length" -> reactive { length(segment()).real() }
-        "normalize" -> reactive { normalize(point()) }
-        "dir" -> reactive { dir(segment()) }
-        "radius" -> reactive { sqrt(circle().radiusSqr).real() }
-        "center" -> reactive { circle().center }
-        "tangentPoint" -> reactive { tangentPoint(TrinomialOption.RootNot(point()), point(), circle()) }
-        "tangentPoint1" -> reactive { tangentPoint(TrinomialOption.Root1, point(), circle()) }
-        "tangentPoint2" -> reactive { tangentPoint(TrinomialOption.Root2, point(), circle()) }
-        "tangent" -> reactive { tangent(TrinomialOption.RootNot(point()), point(), circle()) }
-        "tangent1" -> reactive { tangent(TrinomialOption.Root1, point(), circle()) }
-        "tangent2" -> reactive { tangent(TrinomialOption.Root2, point(), circle()) }
-        "symmetry" -> reactive { geometric().symmetry(line()) }
-        "translation" -> reactive { geometric().translation(point()) }
-        "homothety" -> reactive { geometric().homothety(point(), point()) }
-        "inversion" -> reactive { geometric().inversion(circle()) }
-        "time" -> {
-            check(args.isEmpty()) { "Unexpected arguments" }
-            Dynamic { time.real() }
-        }
-        "choose" -> reactive { geometric().choose(point().abs()) }
-        "line_trace" -> Static(args.single().let {
-            line(
-                it(ReactiveInput(3658)) as? Complex ?: error("Expected point"),
-                it(ReactiveInput(9137)) as? Complex ?: error("Expected point")
-            )
-        })
-        "circle_trace" -> Static(args.single().let {
-            circumcircle(
-                Triangle(
-                    it(ReactiveInput(2709)) as? Complex ?: error("Expected point"),
-                    it(ReactiveInput(5073)) as? Complex ?: error("Expected point"),
-                    it(ReactiveInput(6349)) as? Complex ?: error("Expected point")
-                )
-            )
-        })
-        "assert" -> reactive {
-            val x = point()
-            val y = point()
-            check((x - y).norm < x.norm * 0.0001f) { "Assertion failed: $x != $y" }
-            x
-        }
-        else -> error("Fun not found: $name")
-    }
-}
 
 fun parseReal(init: String): Pair<Float, String>? {
     val (sign, line) = if (init.startsWith("-")) -1 to init.substring(1) else 1 to init
