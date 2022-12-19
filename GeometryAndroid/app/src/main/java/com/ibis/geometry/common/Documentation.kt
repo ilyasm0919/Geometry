@@ -24,7 +24,7 @@ fun documentation(): () -> Unit {
                 .background(Color.White)
         ) {
             Text("Documentation", style = Typography.h5)
-            listOf("No title" to functions).forEach { (title, functions) ->
+            functions.forEach { (title, functions) ->
                 var expanded by remember { mutableStateOf(false) }
                 Text(title, Modifier.clickable { expanded = !expanded }, style = Typography.h6)
                 if (expanded) Text(functions.joinToString("\n"))

@@ -1,7 +1,6 @@
 package com.ibis.geometry.common
 
 import androidx.compose.ui.graphics.Color
-import kotlin.math.sqrt
 
 //Random(7605164863913659101)
 class ParseContext(
@@ -93,7 +92,7 @@ fun ParseContext.parseAtom(line: String): Pair<Reactive<Geometric>, String> =
                 { parseSum(it).mapFst(::listOf) }, "," to { a, b -> a + b }
             )
             check(next2.startsWith(")")) { "Expected ')'" }
-            functions.find { it.name == word }?.parser?.invoke(args)?.to(next2.substring(1).trimStart())
+            functions.flatMap { it.second }.find { it.name == word }?.parser?.invoke(args)?.to(next2.substring(1).trimStart())
         }
         else names[word]?.to(next) ?: error("Name not found: $word")
     } ?: parseComplex(line)?.let { (res, next) -> Static(res) to next.trimStart() }
