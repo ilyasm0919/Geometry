@@ -15,6 +15,8 @@ class Arg<T>(val arg: String, val parser: ArgParser.() -> T?) {
 
 val geometric = Arg("Object") { nextArg() }
 
+val real = Arg("Real") { nextArg() as? Complex }
+val complex = Arg("Complex") { nextArg() as? Complex }
 val point = Arg("Point") { nextArg() as? Complex }
 
 val line = Arg("Line") {
@@ -271,7 +273,7 @@ val functions = listOf(
         point.function("midpoint", segment) { l ->
             (l.from + l.to) / 2
         },
-        point.function("divide", point, segment, ::divide),
+        point.function("divide", complex, segment, ::divide),
         line.function("parallel", point, line) { a, l ->
             Line(l.coef, -(a.conj() * l.coef).re * 2)
         },
@@ -291,7 +293,7 @@ val functions = listOf(
         },
     ),
     "Circles" to listOf(
-        point.function("radius", circle) { sqrt(it.radiusSqr).real() },
+        real.function("radius", circle) { sqrt(it.radiusSqr).real() },
         point.function("center", circle, Circle::center),
         circle.function("diameter_circle", segment) { l ->
             circle((l.from + l.to) / 2, l.from)
@@ -317,33 +319,33 @@ val functions = listOf(
         },
     ),
     "Algebra" to listOf(
-        point.function("re", point) { it.re.real() },
-        point.function("im", point) { it.im.real() },
-        point.function("sqr", point) { it*it },
-        point.function("sqrt", point, Complex::sqrt),
-        point.function("exp", point, Complex::exp),
-        point.function("ln", point, Complex::ln),
-        point.function("abs", point) { it.abs().real() },
-        point.function("length", segment) { l ->
+        real.function("re", complex) { it.re.real() },
+        real.function("im", complex) { it.im.real() },
+        complex.function("sqr", complex) { it*it },
+        complex.function("sqrt", complex, Complex::sqrt),
+        complex.function("exp", complex, Complex::exp),
+        complex.function("ln", complex, Complex::ln),
+        real.function("abs", complex) { it.abs().real() },
+        real.function("length", segment) { l ->
             (l.to - l.from).abs().real()
         },
-        point.function("normalize", point, ::normalize),
-        point.function("dir", segment) { l ->
+        complex.function("normalize", complex, ::normalize),
+        complex.function("dir", segment) { l ->
             normalize(l.to - l.from)
         },
     ),
     "Transformations" to listOf(
         geometric.function("symmetry", geometric, line, Geometric::symmetry),
         geometric.function("translation", geometric, point, Geometric::translation),
-        geometric.function("homothety", geometric, point, point, Geometric::homothety),
+        geometric.function("homothety", geometric, point, complex, Geometric::homothety),
         geometric.function("inversion", geometric, circle, Geometric::inversion),
     ),
     "Special" to listOf(
-        Function("time", listOf(), point.arg) {
+        Function("time", listOf(), "Natural") {
             check(it.isEmpty()) { "Unexpected arguments" }
             Dynamic { time.real() }
         },
-        point.function("choose", geometric, point) { g, t -> g.choose(t.abs()) },
+        point.function("choose", geometric, real) { g, t -> g.choose(t.abs()) },
         Function("line_trace", listOf(point.arg), line.arg) {
             @Suppress("ComplexRedundantLet")
             Static(it.single().let {
