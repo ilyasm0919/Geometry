@@ -64,12 +64,14 @@ val documentationText = listOf(
         gergonne(Triangle): Point
         nagel(Triangle): Point
         isogonal(Point, Triangle): Point
+        pole(Line, Circle): Line
     """,
     "Lines" to """
         midline(Segment): Line
         parallel(Point, Line): Line
         perpendicular(Point, Line): Line
         euler_line(Triangle): Line
+        polar(Point, Circle): Line
     """,
     "Angles" to """
         clockwise(Angle): Angle

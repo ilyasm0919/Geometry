@@ -126,6 +126,8 @@ fun function(name: String, args: Collection<Reactive<Geometric>>): Reactive<Geom
         "midline" -> reactive { midline(segment()) }
         "parallel" -> reactive { parallel(point(), line()) }
         "perpendicular" -> reactive { perpendicular(point(), line()) }
+        "polar" -> reactive { polar(point(), circle()) }
+        "pole" -> reactive { pole(line(), circle()) }
         "project" -> reactive { project(point(), line()) }
         "cproject" -> reactive { cproject(point(), circle()) }
         "bisector" -> reactive { bisector(angle()) }

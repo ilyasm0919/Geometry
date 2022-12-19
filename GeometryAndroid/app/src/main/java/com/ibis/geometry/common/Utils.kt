@@ -59,6 +59,16 @@ fun parallel(a: Complex, l: Line) = Line(l.coef, -(a.conj() * l.coef).re * 2)
 fun perpendicular(a: Complex, l: Line) =
     Line(l.coef * Complex.I, -(a.conj() * l.coef * Complex.I).re * 2)
 
+// (z - o) * (~a - ~o) + (~z - ~o) * (a - o) = 2*r*r
+fun polar(a: Complex, c: Circle) = (a - c.center).let {
+    Line(it, -2 * (c.center * it.conj()).re - 2 * c.radiusSqr)
+}
+
+// z * ~a + ~z * a + b = 0
+// (z - o) * ~a + (~z - ~o) * a + (b + o * ~a + a * ~o) = 0
+fun pole(l: Line, c: Circle) =
+    -l.coef * c.radiusSqr / (l.free / 2 + (c.center * l.coef.conj()).re) + c.center
+
 // (z - p) * ~a - (~z - ~p) * a = 0
 // z * ~a + ~z * a + b = 0
 // 2 * z * ~a - p * ~a + ~p * a + b = 0
