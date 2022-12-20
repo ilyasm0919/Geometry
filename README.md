@@ -150,6 +150,12 @@ B = cintersect(A, l, c)
 
 ![](images/sparrow.svg)
 
+---
+
+* [Bicyclists lemma](examples/bicyclists.geo)
+
+![](images/bicyclists.svg)
+
 # Installing
 
 Currently, only Windows and Android versions are builded.
