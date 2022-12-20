@@ -134,7 +134,13 @@ B = cintersect(A, l, c)
 
 # Examples
 
-* [Butterfly theorem illustration](examples/butterfly.geo)
+* [Butterfly theorem](examples/butterfly.geo)
+
+![](images/butterfly.svg)
+
+* [Trillum theorem](examples/trillum.geo)
+
+![](images/trillum.svg)
 
 # Installing
 
