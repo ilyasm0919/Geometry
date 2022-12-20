@@ -156,6 +156,12 @@ B = cintersect(A, l, c)
 
 ![](images/bicyclists.svg)
 
+---
+
+* [Lemma 255](examples/255.geo)
+
+![](images/255.svg)
+
 # Installing
 
 Currently, only Windows and Android versions are builded.
