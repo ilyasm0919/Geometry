@@ -10,6 +10,14 @@ enum class Border(val effect: FloatArray?) {
     Line(null);
 }
 
+enum class EqualityGroup {
+    Equal1,
+    Equal2,
+    Equal3,
+    EqualV,
+    EqualO,
+}
+
 fun spans(text: String) = buildList {
     var last = 0
     while (true) {
@@ -29,4 +37,4 @@ fun spans(text: String) = buildList {
     }
 }
 
-data class Style(var name: List<String>?, var color: Color, var border: Border, var fill: Boolean)
+data class Style(var name: List<String>?, var color: Color, var border: Border, var equalityGroup: EqualityGroup?, var fill: Boolean)

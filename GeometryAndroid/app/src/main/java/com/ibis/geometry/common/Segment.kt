@@ -16,5 +16,29 @@ data class Segment(val from: Complex, val to: Complex): Geometric() {
 
     override fun toDrawable() = Drawable {
         line(from.toOffset(), to.toOffset(), it)
+        val center = (from + to).toOffset() / 2f
+        val normed = normalize(to - from)
+        val delta = (normed * 3.imagine()).toOffset()
+        val step = normed.toOffset()
+        when (it.equalityGroup) {
+            EqualityGroup.Equal1 -> {
+                line(center - delta, center + delta, it)
+            }
+            EqualityGroup.Equal2 -> {
+                line(center - step - delta, center - step + delta, it)
+                line(center + step - delta, center + step + delta, it)
+            }
+            EqualityGroup.Equal3 -> {
+                line(center - step * 2f - delta, center - step * 2f + delta, it)
+                line(center - delta, center + delta, it)
+                line(center + step * 2f - delta, center + step * 2f + delta, it)
+            }
+            EqualityGroup.EqualV -> {
+                line(center - step * 2f + delta, center - delta, it)
+                line(center + step * 2f + delta, center - delta, it)
+            }
+            EqualityGroup.EqualO -> circle(center, 2.5f, it)
+            null -> {}
+        }
     }
 }
