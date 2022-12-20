@@ -142,6 +142,10 @@ B = cintersect(A, l, c)
 
 ![](images/trillum.svg)
 
+* [First sparrow lemma](examples/sparrow.geo)
+
+![](images/sparrow.svg)
+
 # Installing
 
 Currently, only Windows and Android versions are builded.
