@@ -138,9 +138,13 @@ B = cintersect(A, l, c)
 
 ![](images/butterfly.svg)
 
+---
+
 * [Trillum theorem](examples/trillum.geo)
 
 ![](images/trillum.svg)
+
+---
 
 * [First sparrow lemma](examples/sparrow.geo)
 
