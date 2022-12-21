@@ -162,6 +162,10 @@ B = cintersect(A, l, c)
 
 ![](images/255.svg)
 
+* [Droz-Farny line theorem](examples/Droz-Farny.geo)
+
+![](images/Droz-Farny.svg)
+
 # Installing
 
 Currently, only Windows and Android versions are builded.
