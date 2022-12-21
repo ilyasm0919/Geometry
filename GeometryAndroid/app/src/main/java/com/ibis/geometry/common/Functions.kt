@@ -304,6 +304,17 @@ val functions = listOf(
             }
         },
         *point.trinomial("tangentPoint", point, circle, ::tangentPoint),
+        line.function("radical_axis", circle, circle) { c1, c2 ->
+            Line(c1.center - c2.center, c1.radiusSqr - c2.radiusSqr - c1.center.norm + c2.center.norm)
+        },
+        point.function("radical_center", circle, circle, circle) { c1, c2, c3 ->
+            ((c1.radiusSqr - c1.center.norm) * (c2.center - c3.center) +
+                    (c2.radiusSqr - c2.center.norm) * (c3.center - c1.center) +
+                    (c3.radiusSqr - c3.center.norm) * (c1.center - c2.center)) /
+            (c1.center * c2.center.conj() - c1.center.conj() * c2.center +
+                    c2.center * c3.center.conj() - c2.center.conj() * c3.center +
+                    c3.center * c1.center.conj() - c3.center.conj() * c1.center)
+        },
         line.function("polar", point, circle) { a, c ->
             (a - c.center).let {
                 Line(it, -2 * (c.center * it.conj()).re - 2 * c.radiusSqr)
