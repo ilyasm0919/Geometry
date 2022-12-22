@@ -162,9 +162,17 @@ B = cintersect(A, l, c)
 
 ![](images/255.svg)
 
+---
+
 * [Droz-Farny line theorem](examples/Droz-Farny.geo)
 
 ![](images/Droz-Farny.svg)
+
+---
+
+* [Gauss line](examples/Gauss.geo)
+
+![](images/Gauss.svg)
 
 # Installing
 
