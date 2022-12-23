@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.key.*
@@ -23,6 +24,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
+import java.io.OutputStreamWriter
 import java.util.*
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -95,8 +97,8 @@ fun ColumnScope.ViewMode(
         }
     }
 
-    fun startVideo() {
-        screenshot = SvgVideo(SvgDrawer(size.toSize(), mediaStore.initVideo("svg").writer()), 18.451, 0)
+    fun<T> startVideo(ext: String, drawer: (Size, OutputStreamWriter) -> T, video: (T, Number, Int) -> Screenshot.Record) {
+        screenshot = video(drawer(size.toSize(), mediaStore.initVideo(ext).writer()), 18.451, 0)
     }
 
     if (!fullscreen) Menu(mode) { hide ->
@@ -133,15 +135,23 @@ fun ColumnScope.ViewMode(
             }) {
                 MenuItem(Icons.Default.PhotoSizeSelectLarge, "Screenshot (html)")
             }
-            if (drawable !is Static) DropdownMenuItem({
-                startVideo()
-                hide()
-            }) {
-                MenuItem(Icons.Default.VideoFile, "Start recording (svg)")
+            if (drawable !is Static) {
+                DropdownMenuItem({
+                    startVideo("svg", ::SvgDrawer, ::SvgVideo)
+                    hide()
+                }) {
+                    MenuItem(Icons.Default.VideoFile, "Start recording (svg)")
+                }
+                DropdownMenuItem({
+                    startVideo("html", ::HtmlDrawer, ::HtmlVideo)
+                    hide()
+                }) {
+                    MenuItem(Icons.Default.VideoFile, "Start recording (html)")
+                }
             }
         }
-        if (screenshot is SvgVideo) DropdownMenuItem({
-            (screenshot as SvgVideo).finish()
+        if (screenshot is Screenshot.Record) DropdownMenuItem({
+            (screenshot as Screenshot.Record).finish()
             screenshot = Screenshot.No
             hide()
         }) {
@@ -164,11 +174,11 @@ fun ColumnScope.ViewMode(
                 currentDrawable.forEach(drawer::draw)
                 drawer.finish()
             }
-            is SvgVideo -> (screenshot as SvgVideo).frame {
+            is Screenshot.Record -> (screenshot as Screenshot.Record).frame {
                 currentDrawable.forEach(::draw)
             }
         }
-        if (screenshot !is SvgVideo) screenshot = Screenshot.No
+        if (screenshot !is Screenshot.Record) screenshot = Screenshot.No
     }
     val cursorHandler = Modifier.pointerInput(cursor.value, mode.value, size, fullscreen) {
         val scale = 200 / size.toSize().minDimension
@@ -224,11 +234,12 @@ fun ColumnScope.ViewMode(
                         true
                     }
                     it.isCtrlPressed && it.key == Key.R && screenshot == Screenshot.No -> {
-                        startVideo()
+                        if (it.isAltPressed) startVideo("html", ::HtmlDrawer, ::HtmlVideo)
+                        else startVideo("svg", ::SvgDrawer, ::SvgVideo)
                         true
                     }
-                    it.isCtrlPressed && it.key == Key.R && screenshot is SvgVideo -> {
-                        (screenshot as SvgVideo).finish()
+                    it.isCtrlPressed && it.key == Key.R && screenshot is Screenshot.Record -> {
+                        (screenshot as Screenshot.Record).finish()
                         screenshot = Screenshot.No
                         true
                     }
