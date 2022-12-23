@@ -8,12 +8,14 @@ import java.io.OutputStreamWriter
 import kotlin.math.PI
 import kotlin.math.abs
 
-class SvgDrawer(override val size: Size, val writer: OutputStreamWriter): Drawer {
+class SvgDrawer(size: Size, val writer: OutputStreamWriter): Drawer {
     private fun writeOpen(tag: String, vararg attributes: Pair<String, Any>) {
         writer.write("<$tag${attributes.joinToString("") { (name, value) ->
             " $name=\"$value\""
         }}")
     }
+
+    override val size = size * 200f / size.minDimension
 
     init {
         writeOpen(

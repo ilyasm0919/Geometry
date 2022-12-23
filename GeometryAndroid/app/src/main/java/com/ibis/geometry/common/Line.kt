@@ -30,14 +30,14 @@ data class Line(val coef: Complex, val free: Float): Geometric() {
     override fun toDrawable() = Drawable { style ->
         val epsilon = 0.001f
         val points = listOf(
-            Line(Complex.ONE, size.width * 2),
-            Line(Complex.I, size.height * 2),
-            Line(-Complex.ONE, size.width * 2),
-            Line(-Complex.I, size.height * 2),
+            Line(Complex.ONE, size.width),
+            Line(Complex.I, size.height),
+            Line(-Complex.ONE, size.width),
+            Line(-Complex.I, size.height),
         ).map { intersect(this@Line, it).toOffset() }.filter {
             !it.isUnspecified &&
-                    it.x in -size.width-epsilon..size.width+epsilon &&
-                    it.y in -size.height-epsilon..size.height+epsilon
+                    it.x in -size.width/2-epsilon..size.width/2+epsilon &&
+                    it.y in -size.height/2-epsilon..size.height/2+epsilon
         }
         assert(points.size == 2) { "Draw line ($this@Line) intersections: ${points.size}" }
         line(points[0], points[1], style)

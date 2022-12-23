@@ -60,7 +60,7 @@ fun ColumnScope.ViewMode(
                 var fSize = size.toSize()
                 translate(fSize.width / 2, fSize.height / 2)
                 scale(fSize.minDimension / 200)
-                fSize = fSize * 200f / fSize.minDimension
+                fSize *= 200f / fSize.minDimension
                 try {
                     CanvasDrawer(textDrawer, fSize, this).let {
                         currentDrawable.forEach(it::draw)
