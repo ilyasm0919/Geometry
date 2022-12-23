@@ -127,6 +127,12 @@ fun ColumnScope.ViewMode(
             }) {
                 MenuItem(Icons.Default.PhotoSizeSelectLarge, "Screenshot (svg)")
             }
+            DropdownMenuItem({
+                screenshot = Screenshot.Html
+                hide()
+            }) {
+                MenuItem(Icons.Default.PhotoSizeSelectLarge, "Screenshot (html)")
+            }
             if (drawable !is Static) DropdownMenuItem({
                 startVideo()
                 hide()
@@ -150,6 +156,11 @@ fun ColumnScope.ViewMode(
             Screenshot.Png -> mediaStore.saveImage("png", bmp)
             Screenshot.Svg -> mediaStore.saveImage("svg") {
                 val drawer = SvgDrawer(size.toSize(), it.writer())
+                currentDrawable.forEach(drawer::draw)
+                drawer.finish()
+            }
+            Screenshot.Html -> mediaStore.saveImage("html") {
+                val drawer = HtmlDrawer(size.toSize(), it.writer())
                 currentDrawable.forEach(drawer::draw)
                 drawer.finish()
             }
@@ -205,7 +216,11 @@ fun ColumnScope.ViewMode(
                         true
                     }
                     it.isCtrlPressed && it.key == Key.S && screenshot == Screenshot.No -> {
-                        screenshot = if (it.isShiftPressed) Screenshot.Svg else Screenshot.Png
+                        screenshot = when {
+                            it.isShiftPressed -> Screenshot.Svg
+                            it.isAltPressed -> Screenshot.Html
+                            else -> Screenshot.Png
+                        }
                         true
                     }
                     it.isCtrlPressed && it.key == Key.R && screenshot == Screenshot.No -> {
