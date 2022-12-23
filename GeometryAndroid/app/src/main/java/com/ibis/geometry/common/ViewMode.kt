@@ -133,7 +133,7 @@ fun ColumnScope.ViewMode(
                 screenshot = Screenshot.Html
                 hide()
             }) {
-                MenuItem(Icons.Default.PhotoSizeSelectLarge, "Screenshot (html)")
+                MenuItem(Icons.Default.Html, "Screenshot (html)")
             }
             if (drawable !is Static) {
                 DropdownMenuItem({
@@ -146,7 +146,7 @@ fun ColumnScope.ViewMode(
                     startVideo("html", ::HtmlDrawer, ::HtmlVideo)
                     hide()
                 }) {
-                    MenuItem(Icons.Default.VideoFile, "Start recording (html)")
+                    MenuItem(Icons.Default.Javascript, "Start recording (html)")
                 }
             }
         }
