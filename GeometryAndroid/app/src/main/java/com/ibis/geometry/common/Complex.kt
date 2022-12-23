@@ -4,9 +4,9 @@ import androidx.compose.ui.geometry.Offset
 import kotlin.math.*
 
 data class Complex(val re: Float, val im: Float): Geometric() {
-//    init {
-//        check(re.isFinite() && im.isFinite()) { "Infinite value" }
-//    }
+    init {
+        check(re.isFinite() && im.isFinite()) { "Infinite value" }
+    }
 
     val norm get() = re * re + im * im
 

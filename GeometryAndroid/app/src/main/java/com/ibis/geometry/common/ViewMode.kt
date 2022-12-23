@@ -160,7 +160,7 @@ fun ColumnScope.ViewMode(
     }
 
     LaunchedEffect(play.value, time.value, screenshot) {
-        if (play.value) time.value++
+        if (drawable !is Static && play.value) time.value++
         when (screenshot) {
             Screenshot.No -> {}
             Screenshot.Png -> mediaStore.saveImage("png", bmp)
