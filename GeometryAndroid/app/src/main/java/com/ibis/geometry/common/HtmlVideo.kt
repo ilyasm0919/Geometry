@@ -5,8 +5,11 @@ import androidx.compose.ui.geometry.center
 data class HtmlVideo(val drawer: HtmlDrawer, val rate: Number, var frame: Int): Screenshot.Record() {
     init {
         drawer.writer.write("""
+            var play = true;
+            document.onkeyup = function(e) { if (e.keyCode == 32) play = !play; };
             var time = 0;
             setInterval(function() {
+            if (!play) return;
             ctx.clearRect(${-drawer.size.center.x}, ${-drawer.size.center.y}, ${drawer.size.width}, ${drawer.size.height});
             switch(time) {
             
