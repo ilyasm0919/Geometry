@@ -54,7 +54,7 @@ fun ColumnScope.ViewMode(
         }) }
     }
     var chosen by remember(mode.value, fullscreen) { mutableStateOf<Int?>(null) }
-    val bmp = remember(size, currentDrawable, cursor.value, chosen) {
+    val bmp = remember(size, currentDrawable, cursor.value, tapped.value) {
         ImageBitmap(size.width, size.height).also { bmp ->
             Canvas(bmp).apply {
                 var fSize = size.toSize()
@@ -159,7 +159,7 @@ fun ColumnScope.ViewMode(
         }
         if (screenshot !is SvgVideo) screenshot = Screenshot.No
     }
-    val cursorHandler = Modifier.pointerInput(cursor.value, mode.value, fullscreen) {
+    val cursorHandler = Modifier.pointerInput(cursor.value, mode.value, size, fullscreen) {
         val scale = 200 / size.toSize().minDimension
         detectDragGestures({ offset ->
             val value = (offset - size.toSize().center) * scale
