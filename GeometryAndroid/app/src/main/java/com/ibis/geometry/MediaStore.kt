@@ -15,33 +15,18 @@ value class MediaStore(val resolver: ContentResolver) : com.ibis.geometry.common
         image.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 90, stream)
     }
 
-    private fun save(ext: String, pend: Boolean): Pair<OutputStream, () -> Unit> {
-        val collection =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-            else MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+    override fun init(ext: String): OutputStream {
+        val collection = MediaStore.Files.getContentUri("external")
         val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, "geometry.$ext")
-            if (pend && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                put(MediaStore.Images.Media.IS_PENDING, 1)
+            put(MediaStore.Downloads.DISPLAY_NAME, "geometry.$ext")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                put(MediaStore.Downloads.IS_PENDING, 1)
         }
         val uri = resolver.insert(collection, values)!!
         values.clear()
-        return resolver.openOutputStream(uri)!! to {
-            if (pend && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                values.put(MediaStore.Images.Media.IS_PENDING, 0)
-            resolver.update(uri, values, null, null)
-        }
-    }
-
-    override fun saveImage(ext: String, content: (OutputStream) -> Unit) {
-        val (stream, update) = save(ext, false)
-        stream.use(content)
-        update()
-    }
-
-    override fun initVideo(ext: String): OutputStream {
-        val (stream, update) = save(ext, true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            values.put(MediaStore.Downloads.IS_PENDING, 0)
+        val stream = resolver.openOutputStream(uri)!!
         return object : OutputStream() {
             override fun write(value: Int) {
                 stream.write(value)
@@ -61,7 +46,7 @@ value class MediaStore(val resolver: ContentResolver) : com.ibis.geometry.common
 
             override fun close() {
                 stream.close()
-                update()
+                resolver.update(uri, values, null, null)
             }
         }
     }

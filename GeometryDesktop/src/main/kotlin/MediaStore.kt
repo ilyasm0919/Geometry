@@ -10,7 +10,7 @@ object MediaStore : com.ibis.geometry.common.MediaStore {
         stream.write(image.toAwtImage().toImage().encodeToData()!!.bytes)
     }
 
-    private fun save(ext: String): OutputStream {
+    override fun init(ext: String): OutputStream {
         val downloads = File("${System.getProperty("user.home")}/Downloads")
         var file = File(downloads, "geometry.$ext")
         if (file.exists()) {
@@ -22,8 +22,4 @@ object MediaStore : com.ibis.geometry.common.MediaStore {
         }
         return file.outputStream()
     }
-
-    override fun saveImage(ext: String, content: (OutputStream) -> Unit) = save(ext).use(content)
-
-    override fun initVideo(ext: String) = save(ext)
 }

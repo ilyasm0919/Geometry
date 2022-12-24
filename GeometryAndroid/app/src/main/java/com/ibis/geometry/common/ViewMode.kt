@@ -98,7 +98,7 @@ fun ColumnScope.ViewMode(
     }
 
     fun<T> startVideo(ext: String, drawer: (Size, OutputStreamWriter) -> T, video: (T, Number, Int) -> Screenshot.Record) {
-        screenshot = video(drawer(size.toSize(), mediaStore.initVideo(ext).writer()), 18.451, 0)
+        screenshot = video(drawer(size.toSize(), mediaStore.init(ext).writer()), 18.451, 0)
     }
 
     if (!fullscreen) Menu(mode) { hide ->

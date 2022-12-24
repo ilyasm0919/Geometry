@@ -5,9 +5,10 @@ import java.io.OutputStream
 
 interface MediaStore {
     fun writeImage(image: ImageBitmap, stream: OutputStream)
-    fun saveImage(ext: String, content: (OutputStream) -> Unit)
-    fun saveImage(ext: String, image: ImageBitmap) = saveImage(ext) {
-        writeImage(image, it)
-    }
-    fun initVideo(ext: String): OutputStream
+    fun init(ext: String): OutputStream
+}
+
+fun MediaStore.saveImage(ext: String, content: (OutputStream) -> Unit) = init(ext).use(content)
+fun MediaStore.saveImage(ext: String, image: ImageBitmap) = saveImage(ext) {
+    writeImage(image, it)
 }
