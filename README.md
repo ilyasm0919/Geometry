@@ -3,7 +3,7 @@
 
 # Geometry
 
-![](images/butterfly.svg)
+![](images/svg/butterfly.svg)
 Geometry viewer and editor for Android and desktop (macOS, Linux, Windows)
 
 # Tutorial
@@ -136,43 +136,43 @@ B = cintersect(A, l, c)
 
 * [Butterfly theorem](examples/butterfly.geo)
 
-![](images/butterfly.svg)
+![](images/svg/butterfly.svg)
 
 ---
 
 * [Trillum theorem](examples/trillum.geo)
 
-![](images/trillum.svg)
+![](images/svg/trillum.svg)
 
 ---
 
 * [First sparrow lemma](examples/sparrow.geo)
 
-![](images/sparrow.svg)
+![](images/svg/sparrow.svg)
 
 ---
 
 * [Bicyclists lemma](examples/bicyclists.geo)
 
-![](images/bicyclists.svg)
+![](images/svg/bicyclists.svg)
 
 ---
 
 * [Lemma 255](examples/255.geo)
 
-![](images/255.svg)
+![](images/svg/255.svg)
 
 ---
 
 * [Droz-Farny line theorem](examples/Droz-Farny.geo)
 
-![](images/Droz-Farny.svg)
+![](images/svg/Droz-Farny.svg)
 
 ---
 
 * [Gauss line](examples/Gauss.geo)
 
-![](images/Gauss.svg)
+![](images/svg/Gauss.svg)
 
 # Installing
 
