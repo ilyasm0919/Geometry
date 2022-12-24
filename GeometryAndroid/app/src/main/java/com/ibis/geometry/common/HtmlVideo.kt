@@ -6,6 +6,7 @@ data class HtmlVideo(val drawer: HtmlDrawer, val rate: Number, var frame: Int): 
     init {
         drawer.writer.write("var play=true;" +
                 "document.onkeyup=function(e){if(e.keyCode==32)play=!play;};" +
+                "document.onclick=function(){play=!play;};" +
                 "var time=0;" +
                 "setInterval(function(){" +
                 "if(!play)return;" +

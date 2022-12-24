@@ -10,8 +10,8 @@ android {
         applicationId "com.ibis.geometry"
         minSdk 21
         targetSdk 33
-        versionCode 9
-        versionName "1.4.2"
+        versionCode 10
+        versionName "1.4.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
