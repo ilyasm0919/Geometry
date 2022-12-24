@@ -1,7 +1,7 @@
 package com.ibis.geometry.common
 
-data class SvgVideo(val drawer: SvgDrawer, val rate: Number, var frame: Int): Screenshot() {
-    fun frame(content: SvgDrawer.() -> Unit) {
+data class SvgVideo(val drawer: SvgDrawer, val rate: Number, var frame: Int): Screenshot.Record() {
+    override fun frame(content: Drawer.() -> Unit) {
         drawer.write("g", *if (frame == 0) arrayOf() else arrayOf("opacity" to 0)) {
             drawer.write(
                 "set",
@@ -26,7 +26,7 @@ data class SvgVideo(val drawer: SvgDrawer, val rate: Number, var frame: Int): Sc
         }
     }
 
-    fun finish() {
+    override fun finish() {
         drawer.write(
             "set",
             "id" to "finish",

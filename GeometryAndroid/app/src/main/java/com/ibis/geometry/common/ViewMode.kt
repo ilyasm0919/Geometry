@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.key.*
@@ -23,6 +24,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
+import java.io.OutputStreamWriter
 import java.util.*
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -95,8 +97,8 @@ fun ColumnScope.ViewMode(
         }
     }
 
-    fun startVideo() {
-        screenshot = SvgVideo(SvgDrawer(size.toSize(), mediaStore.initVideo("svg").writer()), 18.451, 0)
+    fun<T> startVideo(ext: String, drawer: (Size, OutputStreamWriter) -> T, video: (T, Number, Int) -> Screenshot.Record) {
+        screenshot = video(drawer(size.toSize(), mediaStore.initVideo(ext).writer()), 18.451, 0)
     }
 
     if (!fullscreen) Menu(mode) { hide ->
@@ -127,15 +129,29 @@ fun ColumnScope.ViewMode(
             }) {
                 MenuItem(Icons.Default.PhotoSizeSelectLarge, "Screenshot (svg)")
             }
-            if (drawable !is Static) DropdownMenuItem({
-                startVideo()
+            DropdownMenuItem({
+                screenshot = Screenshot.Html
                 hide()
             }) {
-                MenuItem(Icons.Default.VideoFile, "Start recording (svg)")
+                MenuItem(Icons.Default.Html, "Screenshot (html)")
+            }
+            if (drawable !is Static) {
+                DropdownMenuItem({
+                    startVideo("svg", ::SvgDrawer, ::SvgVideo)
+                    hide()
+                }) {
+                    MenuItem(Icons.Default.VideoFile, "Start recording (svg)")
+                }
+                DropdownMenuItem({
+                    startVideo("html", ::HtmlDrawer, ::HtmlVideo)
+                    hide()
+                }) {
+                    MenuItem(Icons.Default.Javascript, "Start recording (html)")
+                }
             }
         }
-        if (screenshot is SvgVideo) DropdownMenuItem({
-            (screenshot as SvgVideo).finish()
+        if (screenshot is Screenshot.Record) DropdownMenuItem({
+            (screenshot as Screenshot.Record).finish()
             screenshot = Screenshot.No
             hide()
         }) {
@@ -144,7 +160,7 @@ fun ColumnScope.ViewMode(
     }
 
     LaunchedEffect(play.value, time.value, screenshot) {
-        if (play.value) time.value++
+        if (drawable !is Static && play.value) time.value++
         when (screenshot) {
             Screenshot.No -> {}
             Screenshot.Png -> mediaStore.saveImage("png", bmp)
@@ -153,11 +169,16 @@ fun ColumnScope.ViewMode(
                 currentDrawable.forEach(drawer::draw)
                 drawer.finish()
             }
-            is SvgVideo -> (screenshot as SvgVideo).frame {
+            Screenshot.Html -> mediaStore.saveImage("html") {
+                val drawer = HtmlDrawer(size.toSize(), it.writer())
+                currentDrawable.forEach(drawer::draw)
+                drawer.finish()
+            }
+            is Screenshot.Record -> (screenshot as Screenshot.Record).frame {
                 currentDrawable.forEach(::draw)
             }
         }
-        if (screenshot !is SvgVideo) screenshot = Screenshot.No
+        if (screenshot !is Screenshot.Record) screenshot = Screenshot.No
     }
     val cursorHandler = Modifier.pointerInput(cursor.value, mode.value, size, fullscreen) {
         val scale = 200 / size.toSize().minDimension
@@ -205,15 +226,20 @@ fun ColumnScope.ViewMode(
                         true
                     }
                     it.isCtrlPressed && it.key == Key.S && screenshot == Screenshot.No -> {
-                        screenshot = if (it.isShiftPressed) Screenshot.Svg else Screenshot.Png
+                        screenshot = when {
+                            it.isShiftPressed -> Screenshot.Svg
+                            it.isAltPressed -> Screenshot.Html
+                            else -> Screenshot.Png
+                        }
                         true
                     }
                     it.isCtrlPressed && it.key == Key.R && screenshot == Screenshot.No -> {
-                        startVideo()
+                        if (it.isAltPressed) startVideo("html", ::HtmlDrawer, ::HtmlVideo)
+                        else startVideo("svg", ::SvgDrawer, ::SvgVideo)
                         true
                     }
-                    it.isCtrlPressed && it.key == Key.R && screenshot is SvgVideo -> {
-                        (screenshot as SvgVideo).finish()
+                    it.isCtrlPressed && it.key == Key.R && screenshot is Screenshot.Record -> {
+                        (screenshot as Screenshot.Record).finish()
                         screenshot = Screenshot.No
                         true
                     }

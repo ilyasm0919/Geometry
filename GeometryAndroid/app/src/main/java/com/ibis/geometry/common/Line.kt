@@ -1,7 +1,5 @@
 package com.ibis.geometry.common
 
-import androidx.compose.ui.geometry.isUnspecified
-
 // ~a * z + a * ~z + b = 0
 data class Line(val coef: Complex, val free: Float): Geometric() {
     // -(~z * a' + b') / ~a' * ~a - (z * ~a' + b') / a' * a + b = 0
@@ -34,10 +32,9 @@ data class Line(val coef: Complex, val free: Float): Geometric() {
             Line(Complex.I, size.height),
             Line(-Complex.ONE, size.width),
             Line(-Complex.I, size.height),
-        ).map { intersect(this@Line, it).toOffset() }.filter {
-            !it.isUnspecified &&
-                    it.x in -size.width/2-epsilon..size.width/2+epsilon &&
-                    it.y in -size.height/2-epsilon..size.height/2+epsilon
+        ).filter { (coef * it.coef).im != 0f }.map { intersect(this@Line, it).toOffset() }.filter {
+            it.x in -size.width/2-epsilon..size.width/2+epsilon &&
+            it.y in -size.height/2-epsilon..size.height/2+epsilon
         }
         assert(points.size == 2) { "Draw line ($this@Line) intersections: ${points.size}" }
         line(points[0], points[1], style)
