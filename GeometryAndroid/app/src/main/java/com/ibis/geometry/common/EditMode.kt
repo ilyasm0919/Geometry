@@ -34,6 +34,7 @@ fun EditMode(
 ) {
     val requester = remember { FocusRequester() }
     val showDocumentation = documentation()
+    val importGeoGen = importGeoGen { input.value = TextFieldValue(it) }
     if (!fullscreen) Menu(mode) { hide ->
         DropdownMenuItem({
             input.value = TextFieldValue()
@@ -54,6 +55,12 @@ fun EditMode(
             }) {
                 Text(it.first)
             }
+        }
+        DropdownMenuItem({
+            importGeoGen()
+            hide()
+        }) {
+            Text("Import from GeoGen")
         }
     }
     TextField(input.value, {
