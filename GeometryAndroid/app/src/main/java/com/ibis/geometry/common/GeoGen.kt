@@ -25,8 +25,8 @@ data class GeoGenContext(
     private val text: StringBuilder = StringBuilder(),
     private val points: MutableMap<String, String> = mutableMapOf(),
     private val lines: MutableMap<String, String> = mutableMapOf(),
-    private val triangles: MutableMap<String, String> = mutableMapOf(),
-    private val circles: MutableMap<String, String> = mutableMapOf(),
+    val triangles: MutableMap<String, String> = mutableMapOf(),
+    val circles: MutableMap<String, String> = mutableMapOf(),
 ) {
     fun text(line: String) = text.appendLine(line)
     private fun obj(value: String, prefix: String, from: MutableMap<String, String>, hide: Boolean = false) =
@@ -61,20 +61,22 @@ fun GeoGenContext.parseGeoGenInitial(line: String) {
         }
         "Triangle" -> {
             check(names.size == 3) { "Expected 3 points" }
+            triangles["triangle(${names.joinToString()})"] = "t"
             """
                 ${names[0]} = #(20+60i)
                 ${names[1]} = #(60-40i)
                 ${names[2]} = #(-60-40i)
-                [orange] [fill] triangle(${names.joinToString()})
+                [orange] [fill] t = triangle(${names.joinToString()})
             """.trimIndent()
         }
         "RightTriangle" -> {
             check(names.size == 3) { "Expected 3 points" }
+            triangles["triangle(${names.joinToString()})"] = "t"
             """
                 ${names[0]} = #(-60-20i)
                 ${names[1]} = #(60-20i)
                 ${names[2]} = project(#(-60+60i), perpendicular(${names[0]}, ${names[0]}, ${names[1]}))
-                [orange] [fill] triangle(${names.joinToString()})
+                [orange] [fill] t = triangle(${names.joinToString()})
             """.trimIndent()
         }
         "Quadrilateral" -> {
@@ -89,6 +91,7 @@ fun GeoGenContext.parseGeoGenInitial(line: String) {
         }
         "CyclicQuadrilateral" -> {
             check(names.size == 4) { "Expected 4 points" }
+            circles["circumcircle(${names[0]}, ${names[1]}, ${names[2]})"] = "c"
             """
                 ${names[0]} = #(20+60i)
                 ${names[1]} = #(60-40i)
