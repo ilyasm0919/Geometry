@@ -56,7 +56,7 @@ fun ColumnScope.ViewMode(
         }) }
     }
     var chosen by remember(mode.value, fullscreen) { mutableStateOf<Int?>(null) }
-    val bmp = remember(size, currentDrawable, cursor.value, tapped.value) {
+    val bmp = remember(size, currentDrawable, cursor.value, chosen) {
         ImageBitmap(size.width, size.height).also { bmp ->
             Canvas(bmp).apply {
                 var fSize = size.toSize()
