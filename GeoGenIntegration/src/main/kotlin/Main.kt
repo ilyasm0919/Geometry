@@ -244,7 +244,7 @@ fun GeoGenContext.parseGeoGenGoal(line: String) {
     })
 }
 
-fun parseGeoGen(text: String) = text.lines().filter(String::isNotBlank).let {
+fun parseGeoGen(text: String) = text.lines().filter(String::isNotBlank).dropLast(4).let {
     GeoGenContext().run {
         parseGeoGenInitial(it[0])
         it.subList(1, it.size - 1).forEach(::parseGeoGenLine)
@@ -254,24 +254,39 @@ fun parseGeoGen(text: String) = text.lines().filter(String::isNotBlank).let {
 }
 
 fun main(args: Array<String>) {
-    if (args.size != 1) {
+    if (args.size != 2) {
         println("""
             Usage:
-                GeoGenIntegration [file]
+                GeoGenIntegration input output
+                
+                input   Input file (readable output from GeoGen) for converting.
+                output  Output directory
         """.trimIndent())
-        exitProcess(1)
+        exitProcess(-1)
     }
 
     val input = File(args[0])
     if (!input.canRead()) {
         println("Cannot read file: $input")
-        exitProcess(2)
+        exitProcess(-2)
     }
 
-    try {
-        println(parseGeoGen(input.readText()))
-    } catch (e: Exception) {
-        println(e)
-        exitProcess(-1)
+    val output = File(args[1])
+    if (!output.isDirectory) {
+        println("Directory does not exists: $output")
+        exitProcess(-3)
     }
+
+    var errors = 0
+    input.readText().split(Regex("^-+$", RegexOption.MULTILINE)).forEachIndexed { index, str ->
+        if (index == 0 || index % 2 != 0) return@forEachIndexed
+        try {
+            File(output, input.nameWithoutExtension + (index / 2) + ".geo")
+                .writeText(parseGeoGen(str))
+        } catch (e: Exception) {
+            println(e.toString())
+            errors++
+        }
+    }
+    exitProcess(errors)
 }
