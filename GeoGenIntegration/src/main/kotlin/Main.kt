@@ -1,25 +1,8 @@
-package com.ibis.geometry.common
+package com.ibis.geometry
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.*
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.window.Dialog
-import com.ibis.geometry.common.theme.Typography
+import java.io.File
+import kotlin.system.exitProcess
+
 
 data class GeoGenContext(
     private val text: StringBuilder = StringBuilder(),
@@ -270,46 +253,25 @@ fun parseGeoGen(text: String) = text.lines().filter(String::isNotBlank).let {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
-@Composable
-fun importGeoGen(callback: (String) -> Unit): () -> Unit {
-    var geoGen by remember { mutableStateOf<String?>(null) }
-    var error by remember(geoGen) { mutableStateOf<String?>(null) }
-    val requester = remember { FocusRequester() }
-    fun callback() {
-        try {
-            callback(parseGeoGen(geoGen!!))
-            geoGen = null
-        } catch (e: Exception) { error = e.toString() }
+fun main(args: Array<String>) {
+    if (args.size != 1) {
+        println("""
+            Usage:
+                GeoGenIntegration [file]
+        """.trimIndent())
+        exitProcess(1)
     }
-    if (geoGen != null) Dialog({ geoGen = null },
-        onPreviewKeyEvent = {
-            if (it.type == KeyEventType.KeyUp && it.isCtrlPressed && it.key == Key.Enter) {
-                callback()
-                true
-            } else false
-        }) {
-        if (geoGen != null) Column(
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .background(Color.White)
-        ) {
-            Text("Import from GeoGen", style = Typography.h5)
-            if (error != null) Text(error!!)
-            TextField(geoGen!!, { geoGen = it }, Modifier
-                    .fillMaxWidth(1f)
-                    .weight(1f)
-                    .horizontalScroll(rememberScrollState())
-                    .focusRequester(requester),
-                textStyle = TextStyle(fontFamily = FontFamily.Monospace),
-                colors = TextFieldDefaults.textFieldColors(backgroundColor = Color.White)
-            )
-            TextButton(::callback, Modifier.align(Alignment.End)) { Text("OK") }
-        }
+
+    val input = File(args[0])
+    if (!input.canRead()) {
+        println("Cannot read file: $input")
+        exitProcess(2)
     }
-    LaunchedEffect(geoGen == null) {
-        if (geoGen != null) requester.requestFocus()
+
+    try {
+        println(parseGeoGen(input.readText()))
+    } catch (e: Exception) {
+        println(e)
+        exitProcess(-1)
     }
-    return { geoGen = "" }
 }
