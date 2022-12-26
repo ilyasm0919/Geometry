@@ -159,12 +159,27 @@ fun parseGeoGenLine(line: String): String {
             [gray] c = circumcircle(${args.joinToString()})
             $name = cintersect(${args[0]}, bisector(${args[2]}, ${args[0]}, ${args[1]}), c)
         """.trimIndent()
-        "NinePointCircle" -> "$name = euler_circle(${args.joinToString()})"
+        "NinePointCircle" -> """
+            [gray] t = triangle(${args.joinToString()})
+            $name = euler_circle(t)
+        """.trimIndent()
         "OppositePointOnCircumcircle" -> """
             [gray] c = circumcircle(${args.joinToString()})
             $name = center(c) * 2 - ${args[0]}
         """.trimIndent()
-        "Orthocenter" -> "$name = orthocenter(${args.joinToString()})"
+        "Orthocenter" -> """
+            [gray] t = triangle(${args.joinToString()})
+            $name = orthocenter(t)
+            [gray] [hide] p = intersect(${args[0]}, $name, ${args[1]}, ${args[2]})
+            [gray] segment(${args[0]}, p)
+            [gray] [fill] angle(${args[0]}, p, ${args[1]})
+            [gray] [hide] p = intersect(${args[1]}, $name, ${args[2]}, ${args[0]})
+            [gray] segment(${args[1]}, p)
+            [gray] [fill] angle(${args[1]}, p, ${args[2]})
+            [gray] [hide] p = intersect(${args[2]}, $name, ${args[0]}, ${args[1]})
+            [gray] segment(${args[2]}, p)
+            [gray] [fill] angle(${args[2]}, p, ${args[0]})
+        """.trimIndent()
         "ParallelLine" -> "$name = parallel(${args.joinToString()})"
         "ParallelLineToLineFromPoints" -> """
             [gray] l = line(${args[1]}, ${args[2]})
