@@ -106,44 +106,103 @@ fun parseGeoGenLine(line: String): String {
     return when (val funName = line.substring(index + 1, open).trim()) {
         "CircleWithCenterThroughPoint" -> "$name = circle(${args.joinToString()})"
         "CircleWithDiameter" -> "$name = diameter_circle(${args.joinToString()})"
-        "Circumcenter" -> "$name = circumcenter(${args.joinToString()})"
+        "Circumcenter" -> """
+            [gray] c = circumcircle(${args.joinToString()})
+            $name = center(c)
+        """.trimIndent()
         "Circumcircle" -> "$name = circumcircle(${args.joinToString()})"
-        "Excenter" -> "$name = excenter(${args[2]}, ${args[0]}, ${args[1]})"
-        "Excircle" -> "$name = excircle(${args[2]}, ${args[0]}, ${args[1]})"
+        "Excenter" -> """
+            [gray] t = triangle(${args[2]}, ${args[0]}, ${args[1]})
+            [gray] c = excircle(t)
+            $name = center(c)
+        """.trimIndent()
+        "Excircle" -> """
+            [gray] t = triangle(${args[2]}, ${args[0]}, ${args[1]})
+            $name = excircle(t)
+        """.trimIndent()
         "ExternalAngleBisector" -> "$name = exbisector(${args[2]}, ${args[0]}, ${args[1]})"
-        "Incenter" -> "$name = incenter(${args.joinToString()})"
-        "Incircle" -> "$name = incircle(${args.joinToString()})"
+        "Incenter" -> """
+            [gray] t = triangle(${args.joinToString()})
+            [gray] c = incircle(t)
+            $name = center(c)
+        """.trimIndent()
+        "Incircle" -> """
+            [gray] t = triangle(${args.joinToString()})
+            $name = incircle(t)
+        """.trimIndent()
         "InternalAngleBisector" -> "$name = bisector(${args[2]}, ${args[0]}, ${args[1]})"
-        "IntersectionOfLines", "IntersectionOfLineAndLineFromPoints", "IntersectionOfLinesFromPoints" ->
+        "IntersectionOfLines" ->
             "$name = intersect(${args.joinToString()})"
+        "IntersectionOfLineAndLineFromPoints" -> """
+            [gray] l = line(${args[1]}, ${args[2]})
+            $name = intersect(${args[0]}, l)
+        """.trimIndent()
+        "IntersectionOfLinesFromPoints" -> """
+            [gray] l = line(${args[0]}, ${args[1]})
+            [gray] m = line(${args[2]}, ${args[3]})
+            $name = intersect(l, m)
+        """.trimIndent()
         "IsoscelesTrapezoidPoint" -> "$name = symmetry(${args[0]}, midline(${args[1]}, ${args[2]}))"
         "LineFromPoints" -> "$name = line(${args.joinToString()})"
-        "LineThroughCircumcenter" -> "$name = line(${args[0]}, circumcenter(${args.joinToString()}))"
-        "Median" -> "$name = line(${args[0]}, ${args.joinToString()})"
+        "LineThroughCircumcenter" -> """
+            O = circumcenter(${args.joinToString()})
+            $name = line(${args[0]}, O)
+        """.trimIndent()
+        "Median" -> "$name = line(${args[0]}, midpoint(${args[1]}, ${args[2]}))"
         "Midline" -> "$name = line(midpoint(${args[0]}, ${args[1]}), midpoint(${args[0]}, ${args[2]}))"
         "Midpoint" -> "$name = midpoint(${args.joinToString()})"
-        "MidpointOfArc" -> "$name = cintersect(${args[0]}, exbisector(${args[2]}, ${args[0]}, ${args[1]})"
-        "MidpointOfOppositeArc" -> "$name = cintersect(${args[0]}, bisector(${args[2]}, ${args[0]}, ${args[1]})"
+        "MidpointOfArc" -> """
+            [gray] c = circumcircle(${args.joinToString()})
+            $name = cintersect(${args[0]}, exbisector(${args[2]}, ${args[0]}, ${args[1]}), c)
+        """.trimIndent()
+        "MidpointOfOppositeArc" -> """
+            [gray] c = circumcircle(${args.joinToString()})
+            $name = cintersect(${args[0]}, bisector(${args[2]}, ${args[0]}, ${args[1]}), c)
+        """.trimIndent()
         "NinePointCircle" -> "$name = euler_circle(${args.joinToString()})"
-        "OppositePointOnCircumcircle" -> "$name = circumcenter(${args.joinToString()}) * 2 - ${args[0]}"
+        "OppositePointOnCircumcircle" -> """
+            [gray] c = circumcircle(${args.joinToString()})
+            $name = center(c) * 2 - ${args[0]}
+        """.trimIndent()
         "Orthocenter" -> "$name = orthocenter(${args.joinToString()})"
-        "ParallelLine", "ParallelLineToLineFromPoints" ->
-            "$name = parallel(${args.joinToString()})"
+        "ParallelLine" -> "$name = parallel(${args.joinToString()})"
+        "ParallelLineToLineFromPoints" -> """
+            [gray] l = line(${args[1]}, ${args[2]})
+            $name = parallel(${args[0]}, l)
+        """.trimIndent()
         "ParallelogramPoint" -> "$name = ${args[1]} + ${args[2]} - ${args[0]}"
         "PerpendicularBisector" -> "$name = midline(${args.joinToString()})"
-        "PerpendicularLine", "PerpendicularLineToLineFromPoints" ->
-            "$name = perpendicular(${args.joinToString()})"
+        "PerpendicularLine" -> "$name = perpendicular(${args.joinToString()})"
+        "PerpendicularLineToLineFromPoints" -> """
+            [gray] l = line(${args[1]}, ${args[2]})
+            $name = perpendicular(${args[0]}, l)
+        """.trimIndent()
         "PerpendicularLineAtPointOfLine" -> "$name = perpendicular(${args[0]}, ${args.joinToString()})"
-        "PerpendicularProjection", "PerpendicularProjectionOnLineFromPoints" ->
-            "$name = project(${args.joinToString()})"
+        "PerpendicularProjection" -> "$name = project(${args.joinToString()})"
+        "PerpendicularProjectionOnLineFromPoints" -> """
+            [gray] l = line(${args[1]}, ${args[2]})
+            $name = project(${args[0]}, l)
+        """.trimIndent()
         "PointReflection" -> "$name = ${args[1]} * 2 - ${args[0]}"
-        "ReflectionInLine", "ReflectionInLineFromPoints" ->
-            "$name = symmetry(${args.joinToString()})"
-        "SecondIntersectionOfCircleAndLineFromPoints" -> "$name = cintersect(${args[0]}, " +
-                "${args[0]}, ${args[1]}, circumcircle(${args[0]}, ${args[2]}, ${args[3]}))"
-        "SecondIntersectionOfTwoCircumcircles" -> "$name = ccintersect(${args[0]}, " +
-                "circumcircle(${args[0]}, ${args[1]}, ${args[2]}), circumcircle(${args[0]}, ${args[3]}, ${args[4]}))"
-        "TangentLine" -> "$name = tangent1(${args[0]}, circumcircle(${args.joinToString()}))"
+        "ReflectionInLine" -> "$name = symmetry(${args.joinToString()})"
+        "ReflectionInLineFromPoints" -> """
+            [gray] l = line(${args[1]}, ${args[2]})
+            $name = symmetry(${args[0]}, l)
+        """.trimIndent()
+        "SecondIntersectionOfCircleAndLineFromPoints" -> """
+            [gray] l = line(${args[0]}, ${args[1]})
+            [gray] c = circumcircle(${args[0]}, ${args[2]}, ${args[3]})
+            $name = cintersect(${args[0]}, l, c)
+        """.trimIndent()
+        "SecondIntersectionOfTwoCircumcircles" -> """
+            [gray] c1 = circumcircle(${args[0]}, ${args[1]}, ${args[2]})
+            [gray] c2 = circumcircle(${args[0]}, ${args[3]}, ${args[4]})
+            $name = ccintersect(${args[0]}, c1, c2)
+        """.trimIndent()
+        "TangentLine" -> """
+            [gray] c = circumcircle(${args.joinToString()})
+            $name = tangent1(${args[0]}, c)
+        """.trimIndent()
         else -> error("Unexpected $funName")
     }
 }
