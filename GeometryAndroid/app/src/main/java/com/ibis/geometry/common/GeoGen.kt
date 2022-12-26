@@ -21,11 +21,36 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.window.Dialog
 import com.ibis.geometry.common.theme.Typography
 
-fun parseGeoGenInitial(line: String): String {
+data class GeoGenContext(
+    private val text: StringBuilder = StringBuilder(),
+    private val points: MutableMap<String, String> = mutableMapOf(),
+    private val lines: MutableMap<String, String> = mutableMapOf(),
+    private val triangles: MutableMap<String, String> = mutableMapOf(),
+    private val circles: MutableMap<String, String> = mutableMapOf(),
+) {
+    fun text(line: String) = text.appendLine(line)
+    private fun obj(value: String, prefix: String, from: MutableMap<String, String>, hide: Boolean = false) =
+        when (val res = from[value]) {
+            null -> (prefix + from.size.inc()).also {
+                text("${"[hide] ".takeIf { hide }.orEmpty()}[gray] $it = $value")
+                from[value] = it
+            }
+            else -> res
+        }
+    fun point(value: String, hide: Boolean) = obj(value, "p", points, hide)
+    fun line(a: String, b: String) = obj("line($a, $b)", "l", lines)
+    fun triangle(a: String, b: String, c: String) = obj("triangle($a, $b, $c)", "t", triangles)
+    fun circle(value: String) = obj(value, "c", circles)
+    fun circumcircle(t: String) = circle("circumcircle($t)")
+
+    override fun toString() = text.toString()
+}
+
+fun GeoGenContext.parseGeoGenInitial(line: String) {
     val index = line.indexOf(":")
     check(index != -1) { "Expected initial object" }
     val names = line.substring(index + 1).split(",").map(String::trim)
-    return when (val name = line.substring(0, index).trim()) {
+    text(when (val name = line.substring(0, index).trim()) {
         "LineSegment" -> {
             check(names.size == 2) { "Expected 2 points" }
             """
@@ -93,142 +118,87 @@ fun parseGeoGenInitial(line: String): String {
             """.trimIndent()
         }
         else -> error("Unexpected $name")
-    }
+    })
 }
 
-fun parseGeoGenLine(line: String): String {
+fun GeoGenContext.parseGeoGenLine(line: String) {
     val index = line.indexOf("=")
     val open = line.indexOf("(")
     check(index != -1 && open > index && line.last() == ')') { "Expected definition" }
     val name = line.substring(0, index).trim()
     val args = line.substring(open + 1, line.length - 1)
         .filterNot("{}"::contains).split(",").map(String::trim)
-    return when (val funName = line.substring(index + 1, open).trim()) {
+    when (val funName = line.substring(index + 1, open).trim()) {
         "CircleWithCenterThroughPoint" -> "$name = circle(${args.joinToString()})"
         "CircleWithDiameter" -> "$name = diameter_circle(${args.joinToString()})"
-        "Circumcenter" -> """
-            [gray] c = circumcircle(${args.joinToString()})
-            $name = center(c)
-        """.trimIndent()
+        "Circumcenter" -> "$name = center(${circumcircle(args.joinToString())})"
         "Circumcircle" -> "$name = circumcircle(${args.joinToString()})"
-        "Excenter" -> """
-            [gray] t = triangle(${args[2]}, ${args[0]}, ${args[1]})
-            [gray] c = excircle(t)
-            $name = center(c)
-        """.trimIndent()
-        "Excircle" -> """
-            [gray] t = triangle(${args[2]}, ${args[0]}, ${args[1]})
-            $name = excircle(t)
-        """.trimIndent()
+        "Excenter" -> "$name = center(${circle("excircle(${triangle(args[2], args[0], args[1])})")})"
+        "Excircle" -> "$name = excircle(${triangle(args[2], args[0], args[1])})"
         "ExternalAngleBisector" -> "$name = exbisector(${args[2]}, ${args[0]}, ${args[1]})"
-        "Incenter" -> """
-            [gray] t = triangle(${args.joinToString()})
-            [gray] c = incircle(t)
-            $name = center(c)
-        """.trimIndent()
-        "Incircle" -> """
-            [gray] t = triangle(${args.joinToString()})
-            $name = incircle(t)
-        """.trimIndent()
+        "Incenter" -> "$name = center(${circle("incircle(${triangle(args[0], args[1], args[2])})")})"
+        "Incircle" -> "$name = incircle(${triangle(args[0], args[1], args[2])})"
         "InternalAngleBisector" -> "$name = bisector(${args[2]}, ${args[0]}, ${args[1]})"
-        "IntersectionOfLines" ->
-            "$name = intersect(${args.joinToString()})"
-        "IntersectionOfLineAndLineFromPoints" -> """
-            [gray] l = line(${args[1]}, ${args[2]})
-            $name = intersect(${args[0]}, l)
-        """.trimIndent()
-        "IntersectionOfLinesFromPoints" -> """
-            [gray] l = line(${args[0]}, ${args[1]})
-            [gray] m = line(${args[2]}, ${args[3]})
-            $name = intersect(l, m)
-        """.trimIndent()
+        "IntersectionOfLines" -> "$name = intersect(${args.joinToString()})"
+        "IntersectionOfLineAndLineFromPoints" -> "$name = intersect(${args[0]}, ${line(args[1], args[2])})"
+        "IntersectionOfLinesFromPoints" -> "$name = intersect(${line(args[0], args[1])}, ${line(args[2], args[3])})"
         "IsoscelesTrapezoidPoint" -> "$name = symmetry(${args[0]}, midline(${args[1]}, ${args[2]}))"
         "LineFromPoints" -> "$name = line(${args.joinToString()})"
-        "LineThroughCircumcenter" -> """
-            O = circumcenter(${args.joinToString()})
-            $name = line(${args[0]}, O)
-        """.trimIndent()
+        "LineThroughCircumcenter" -> "$name = line(${args[0]}, ${
+            point(
+                "circumcenter(${args.joinToString()})",
+                false
+            )
+        })"
         "Median" -> "$name = line(${args[0]}, midpoint(${args[1]}, ${args[2]}))"
         "Midline" -> "$name = line(midpoint(${args[0]}, ${args[1]}), midpoint(${args[0]}, ${args[2]}))"
         "Midpoint" -> "$name = midpoint(${args.joinToString()})"
-        "MidpointOfArc" -> """
-            [gray] c = circumcircle(${args.joinToString()})
-            $name = cintersect(${args[0]}, exbisector(${args[2]}, ${args[0]}, ${args[1]}), c)
-        """.trimIndent()
-        "MidpointOfOppositeArc" -> """
-            [gray] c = circumcircle(${args.joinToString()})
-            $name = cintersect(${args[0]}, bisector(${args[2]}, ${args[0]}, ${args[1]}), c)
-        """.trimIndent()
-        "NinePointCircle" -> """
-            [gray] t = triangle(${args.joinToString()})
-            $name = euler_circle(t)
-        """.trimIndent()
-        "OppositePointOnCircumcircle" -> """
-            [gray] c = circumcircle(${args.joinToString()})
-            $name = center(c) * 2 - ${args[0]}
-        """.trimIndent()
-        "Orthocenter" -> """
-            [gray] t = triangle(${args.joinToString()})
-            $name = orthocenter(t)
-            [gray] [hide] p = intersect(${args[0]}, $name, ${args[1]}, ${args[2]})
-            [gray] segment(${args[0]}, p)
-            [gray] [fill] angle(${args[0]}, p, ${args[1]})
-            [gray] [hide] p = intersect(${args[1]}, $name, ${args[2]}, ${args[0]})
-            [gray] segment(${args[1]}, p)
-            [gray] [fill] angle(${args[1]}, p, ${args[2]})
-            [gray] [hide] p = intersect(${args[2]}, $name, ${args[0]}, ${args[1]})
-            [gray] segment(${args[2]}, p)
-            [gray] [fill] angle(${args[2]}, p, ${args[0]})
-        """.trimIndent()
+        "MidpointOfArc" -> "$name = cintersect(${args[0]}, " +
+                "exbisector(${args[2]}, ${args[0]}, ${args[1]}), ${circumcircle(args.joinToString())})"
+        "MidpointOfOppositeArc" -> "$name = cintersect(${args[0]}, " +
+                "bisector(${args[2]}, ${args[0]}, ${args[1]}), ${circumcircle(args.joinToString())})"
+        "NinePointCircle" -> "$name = euler_circle(${triangle(args[0], args[1], args[2])})"
+        "OppositePointOnCircumcircle" -> "$name = center(${circumcircle(args.joinToString())}) * 2 - ${args[0]}"
+        "Orthocenter" -> {
+            fun angle(a: String, b: String, c: String) = point("intersect($a, $name, $b, $c)", true).let {
+                text("[gray] segment($a, $it)")
+                text("[gray] [fill] angle($a, $it, $b)")
+            }
+            text("$name = orthocenter(${triangle(args[0], args[1], args[2])})")
+            angle(args[0], args[1], args[2])
+            angle(args[1], args[2], args[0])
+            angle(args[2], args[0], args[1])
+            null
+        }
         "ParallelLine" -> "$name = parallel(${args.joinToString()})"
-        "ParallelLineToLineFromPoints" -> """
-            [gray] l = line(${args[1]}, ${args[2]})
-            $name = parallel(${args[0]}, l)
-        """.trimIndent()
+        "ParallelLineToLineFromPoints" -> "$name = parallel(${args[0]}, ${line(args[1], args[2])})"
         "ParallelogramPoint" -> "$name = ${args[1]} + ${args[2]} - ${args[0]}"
         "PerpendicularBisector" -> "$name = midline(${args.joinToString()})"
         "PerpendicularLine" -> "$name = perpendicular(${args.joinToString()})"
-        "PerpendicularLineToLineFromPoints" -> """
-            [gray] l = line(${args[1]}, ${args[2]})
-            $name = perpendicular(${args[0]}, l)
-        """.trimIndent()
+        "PerpendicularLineToLineFromPoints" -> "$name = perpendicular(${args[0]}, ${line(args[1], args[2])})"
         "PerpendicularLineAtPointOfLine" -> "$name = perpendicular(${args[0]}, ${args.joinToString()})"
         "PerpendicularProjection" -> "$name = project(${args.joinToString()})"
-        "PerpendicularProjectionOnLineFromPoints" -> """
-            [gray] l = line(${args[1]}, ${args[2]})
-            $name = project(${args[0]}, l)
-        """.trimIndent()
+        "PerpendicularProjectionOnLineFromPoints" -> "$name = project(${args[0]}, ${line(args[1], args[2])})"
         "PointReflection" -> "$name = ${args[1]} * 2 - ${args[0]}"
         "ReflectionInLine" -> "$name = symmetry(${args.joinToString()})"
-        "ReflectionInLineFromPoints" -> """
-            [gray] l = line(${args[1]}, ${args[2]})
-            $name = symmetry(${args[0]}, l)
-        """.trimIndent()
-        "SecondIntersectionOfCircleAndLineFromPoints" -> """
-            [gray] l = line(${args[0]}, ${args[1]})
-            [gray] c = circumcircle(${args[0]}, ${args[2]}, ${args[3]})
-            $name = cintersect(${args[0]}, l, c)
-        """.trimIndent()
-        "SecondIntersectionOfTwoCircumcircles" -> """
-            [gray] c1 = circumcircle(${args[0]}, ${args[1]}, ${args[2]})
-            [gray] c2 = circumcircle(${args[0]}, ${args[3]}, ${args[4]})
-            $name = ccintersect(${args[0]}, c1, c2)
-        """.trimIndent()
-        "TangentLine" -> """
-            [gray] c = circumcircle(${args.joinToString()})
-            $name = tangent1(${args[0]}, c)
-        """.trimIndent()
+        "ReflectionInLineFromPoints" -> "$name = symmetry(${args[0]}, ${line(args[1], args[2])})"
+        "SecondIntersectionOfCircleAndLineFromPoints" -> "$name = cintersect(${args[0]}, " +
+                "${line(args[0], args[1])}, ${circumcircle("${args[0]}, ${args[2]}, ${args[3]}")})"
+        "SecondIntersectionOfTwoCircumcircles" -> "$name = ccintersect(${args[0]}, " +
+                "${circumcircle("${args[0]}, ${args[1]}, ${args[2]}")}, " +
+                "${circumcircle("${args[0]}, ${args[3]}, ${args[4]}")})"
+        "TangentLine" -> "$name = tangent1(${args[0]}, ${circumcircle(args.joinToString())})"
         else -> error("Unexpected $funName")
-    }
+    }?.let(::text)
 }
 
-fun parseGeoGenGoal(line: String): String {
+fun GeoGenContext.parseGeoGenGoal(line: String) {
     val index = line.indexOf(":")
     val dash = line.indexOf("-")
     check(index != -1 && dash > index) { "Expected goal" }
     val args = line.substring(index + 1, dash)
         .filterNot("[]"::contains).split(",").map(String::trim)
-    return when (val name = line.substring(0, index).trim()) {
+    text(when (val name = line.substring(0, index).trim()) {
         "ConcyclicPoints" -> {
             check(args.size == 4) { "Expected 4 points" }
             "[red] [dash] circumcircle(${args[0]}, ${args[1]}, ${args[2]})"
@@ -285,13 +255,16 @@ fun parseGeoGenGoal(line: String): String {
             """.trimIndent()
         }
         else -> error("Unexpected $name")
-    }
+    })
 }
 
 fun parseGeoGen(text: String) = text.lines().filter(String::isNotBlank).let {
-    "${parseGeoGenInitial(it[0])}\n${
-        it.subList(1, it.size - 1).joinToString("\n", transform = ::parseGeoGenLine)
-    }\n${parseGeoGenGoal(it.last())}"
+    GeoGenContext().run {
+        parseGeoGenInitial(it[0])
+        it.subList(1, it.size - 1).forEach(::parseGeoGenLine)
+        parseGeoGenGoal(it.last())
+        toString()
+    }
 }
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
