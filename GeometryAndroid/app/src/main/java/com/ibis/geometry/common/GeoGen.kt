@@ -222,8 +222,76 @@ fun parseGeoGenLine(line: String): String {
     }
 }
 
-fun parseGeoGen(text: String) = text.lines().let {
-    parseGeoGenInitial(it[0]) + "\n" + it.drop(1).joinToString("\n", transform = ::parseGeoGenLine)
+fun parseGeoGenGoal(line: String): String {
+    val index = line.indexOf(":")
+    val dash = line.indexOf("-")
+    check(index != -1 && dash > index) { "Expected goal" }
+    val args = line.substring(index + 1, dash)
+        .filterNot("[]"::contains).split(",").map(String::trim)
+    return when (val name = line.substring(0, index).trim()) {
+        "ConcyclicPoints" -> {
+            check(args.size == 4) { "Expected 4 points" }
+            "[red] [dash] circumcircle(${args[0]}, ${args[1]}, ${args[2]})"
+        }
+        "CollinearPoints" -> {
+            check(args.size == 3) { "Expected 3 points" }
+            "[red] [dash] line(${args[0]}, ${args[1]})"
+        }
+        "ConcurrentLines" -> {
+            check(args.size == 6) { "Expected 6 points" }
+            """
+                [red] l = segment(${args[0]}, ${args[1]})
+                [red] m = segment(${args[2]}, ${args[3]})
+                [red] n = segment(${args[4]}, ${args[5]})
+                [red] intersect(l, m)
+            """.trimIndent()
+        }
+        "EqualLineSegments" -> {
+            check(args.size == 4) { "Expected 4 points" }
+            """
+                [red] [equal1] segment(${args[0]}, ${args[1]})
+                [red] [equal1] segment(${args[2]}, ${args[3]})
+            """.trimIndent()
+        }
+        "LineTangentToCircle" -> {
+            check(args.size == 5) { "Expected 5 points" }
+            """
+                [red] l = line(${args[0]}, ${args[1]})
+                [red] c = circumcircle(${args[2]}, ${args[3]}, ${args[4]})
+                [red] cintersect1(l, c)
+            """.trimIndent()
+        }
+        "TangentCircles" -> {
+            check(args.size == 6) { "Expected 6 points" }
+            """
+                [red] c1 = circumcircle(${args[0]}, ${args[1]}, ${args[2]})
+                [red] c2 = circumcircle(${args[3]}, ${args[4]}, ${args[5]})
+                [red] ccintersect1(c1, c2)
+            """.trimIndent()
+        }
+        "ParallelLines" -> {
+            check(args.size == 4) { "Expected 4 points" }
+            """
+                [red] segment(${args[0]}, ${args[1]})
+                [red] segment(${args[2]}, ${args[3]})
+            """.trimIndent()
+        }
+        "PerpendicularLines" -> {
+            check(args.size == 4) { "Expected 4 points" }
+            """
+                [red] l = line(${args[0]}, ${args[1]})
+                [red] m = line(${args[2]}, ${args[3]})
+                [red] [fill] [dash] angle(${args[0]}, intersect(l, m), ${args[2]})
+            """.trimIndent()
+        }
+        else -> error("Unexpected $name")
+    }
+}
+
+fun parseGeoGen(text: String) = text.lines().filter(String::isNotBlank).let {
+    "${parseGeoGenInitial(it[0])}\n${
+        it.subList(1, it.size - 1).joinToString("\n", transform = ::parseGeoGenLine)
+    }\n${parseGeoGenGoal(it.last())}"
 }
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
