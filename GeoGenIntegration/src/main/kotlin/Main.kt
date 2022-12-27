@@ -1,5 +1,3 @@
-package com.ibis.geometry
-
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -115,6 +113,7 @@ fun GeoGenContext.parseGeoGenLine(line: String) {
     val args = line.substring(open + 1, line.length - 1)
         .filterNot("{}"::contains).split(",").map(String::trim)
     when (val funName = line.substring(index + 1, open).trim()) {
+        "Centroid" -> "$name = centroid(${triangle(args[0], args[1], args[2])})"
         "CircleWithCenterThroughPoint" -> "$name = circle(${args.joinToString()})"
         "CircleWithDiameter" -> "$name = diameter_circle(${args.joinToString()})"
         "Circumcenter" -> "$name = center(${circumcircle(args.joinToString())})"
