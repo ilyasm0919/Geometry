@@ -236,7 +236,7 @@ fun GeoGenContext.parseGeoGenGoal(line: String) {
             """
                 [red] l = line(${args[0]}, ${args[1]})
                 [red] m = line(${args[2]}, ${args[3]})
-                [red] [fill] [dash] angle(${args[0]}, intersect(l, m), ${args[2]})
+                [red] [fill] [dot] angle(${args[0]}, intersect(l, m), ${args[2]})
             """.trimIndent()
         }
         else -> error("Unexpected $name")
