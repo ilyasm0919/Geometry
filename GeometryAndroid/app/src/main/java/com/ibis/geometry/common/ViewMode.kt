@@ -1,5 +1,6 @@
 package com.ibis.geometry.common
 
+import TextDrawer.text
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -49,7 +50,7 @@ fun ColumnScope.ViewMode(
         try {
             drawable(ReactiveInput(time.value)).unzip().let {
                 movable = it.second.filterNotNull()
-                it.first
+                it.first.sortedBy(Drawable::topmost)
             }
         } catch(e: Exception) { listOf(Drawable {
             text(-size.toSize().center + Offset(10f, 10f), listOf(e.toString()), Color.Black)
