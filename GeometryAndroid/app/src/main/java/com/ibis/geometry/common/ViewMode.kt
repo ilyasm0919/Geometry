@@ -1,9 +1,7 @@
 package com.ibis.geometry.common
 
-import TextDrawer.text
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.DropdownMenuItem
@@ -37,6 +35,7 @@ fun ColumnScope.ViewMode(
     fullscreen: Boolean,
     mode: MutableState<Mode>,
     drawable: Reactive<List<Pair<Drawable, Movable?>>>,
+    transformation: TransformationState,
     cursor: MutableState<Boolean>,
     tapped: MutableState<Offset>,
     play: MutableState<Boolean>,
@@ -57,15 +56,15 @@ fun ColumnScope.ViewMode(
         }) }
     }
     var chosen by remember(mode.value, fullscreen) { mutableStateOf<Int?>(null) }
-    val bmp = remember(size, currentDrawable, cursor.value, chosen) {
+    val bmp = remember(size, currentDrawable, transformation.index, if (cursor.value) tapped.value else chosen) {
         ImageBitmap(size.width, size.height).also { bmp ->
             Canvas(bmp).apply {
-                var fSize = size.toSize()
-                translate(fSize.width / 2, fSize.height / 2)
-                scale(fSize.minDimension / 200)
-                fSize *= 200f / fSize.minDimension
+                val bounds = transformation.getBounds(size.toSize())
+                scale(transformation.zoom * size.toSize().minDimension / 200f)
+                rotate(transformation.rotation)
+                transformation.getTranslation(size.toSize()).let { translate(it.x, it.y) }
                 try {
-                    CanvasDrawer(textDrawer, fSize, this).let {
+                    CanvasDrawer(textDrawer, bounds, this).let {
                         currentDrawable.forEach(it::draw)
                     }
                 } catch (_: Exception) {}
@@ -78,13 +77,13 @@ fun ColumnScope.ViewMode(
                         )
                     }
                     drawLine(
-                        Offset(tapped.value.x, -fSize.height / 2),
-                        Offset(tapped.value.x, fSize.height / 2),
+                        Offset(tapped.value.x, bounds.top),
+                        Offset(tapped.value.x, bounds.bottom),
                         paint
                     )
                     drawLine(
-                        Offset(-fSize.width / 2, tapped.value.y),
-                        Offset(fSize.width / 2, tapped.value.y),
+                        Offset(bounds.left, tapped.value.y),
+                        Offset(bounds.right, tapped.value.y),
                         paint
                     )
                 } else if (chosen != null) {
@@ -98,8 +97,8 @@ fun ColumnScope.ViewMode(
         }
     }
 
-    fun<T> startVideo(ext: String, drawer: (Size, OutputStreamWriter) -> T, video: (T, Number, Int) -> Screenshot.Record) {
-        screenshot = video(drawer(size.toSize(), mediaStore.init(ext).writer()), 18.451, 0)
+    fun<T> startVideo(ext: String, drawer: (TransformationState, Size, OutputStreamWriter) -> T, video: (T, Number, Int) -> Screenshot.Record) {
+        screenshot = video(drawer(transformation, size.toSize(), mediaStore.init(ext).writer()), 18.451, 0)
     }
 
     if (!fullscreen) Menu(mode) { hide ->
@@ -166,12 +165,12 @@ fun ColumnScope.ViewMode(
             Screenshot.No -> {}
             Screenshot.Png -> mediaStore.saveImage("png", bmp)
             Screenshot.Svg -> mediaStore.saveImage("svg") {
-                val drawer = SvgDrawer(size.toSize(), it.writer())
+                val drawer = SvgDrawer(transformation, size.toSize(), it.writer())
                 currentDrawable.forEach(drawer::draw)
                 drawer.finish()
             }
             Screenshot.Html -> mediaStore.saveImage("html") {
-                val drawer = HtmlDrawer(size.toSize(), it.writer())
+                val drawer = HtmlDrawer(transformation, size.toSize(), it.writer())
                 currentDrawable.forEach(drawer::draw)
                 drawer.finish()
             }
@@ -182,16 +181,13 @@ fun ColumnScope.ViewMode(
         if (screenshot !is Screenshot.Record) screenshot = Screenshot.No
     }
     val cursorHandler = Modifier.pointerInput(cursor.value, mode.value, size, fullscreen) {
-        val scale = 200 / size.toSize().minDimension
-        detectDragGestures({ offset ->
-            val value = (offset - size.toSize().center) * scale
+        detectDragOrTransform(transformation, { value ->
             tapped.value = value
-            if (!cursor.value) chosen = movable.indexOfFirst {
+            cursor.value || movable.indexOfFirst {
                 (it.pos.toOffset() - value).getDistanceSquared() < 40f
-            }.takeIf { it != -1 }
-        }, { chosen = null }) { change, delta ->
-            change.consume()
-            tapped.value += delta * scale
+            }.takeIf { it != -1 }.also { chosen = it } != null
+        }, { chosen = null }) { value ->
+            tapped.value = value
             if (!cursor.value && chosen != null) {
                 val c = movable[chosen!!]
                 input.value = TextFieldValue(
@@ -211,13 +207,29 @@ fun ColumnScope.ViewMode(
             .focusRequester(requester)
             .focusable()
             .onPreviewKeyEvent {
-                if (it.type == KeyEventType.KeyDown && cursor.value) {
-                    val step = if (it.isCtrlPressed) 0.1f else 1f
+                if (it.type == KeyEventType.KeyDown)
+                if (!cursor.value && it.isCtrlPressed) {
                     when (it.key) {
-                        Key.DirectionLeft -> tapped.value -= Offset(step, 0f)
-                        Key.DirectionUp -> tapped.value -= Offset(0f, step)
-                        Key.DirectionRight -> tapped.value += Offset(step, 0f)
-                        Key.DirectionDown -> tapped.value += Offset(0f, step)
+                        Key.DirectionLeft -> transformation.rotate(-10f)
+                        Key.DirectionUp, Key.NumPadAdd -> transformation.scale(1.1f)
+                        Key.DirectionRight -> transformation.rotate(10f)
+                        Key.DirectionDown, Key.NumPadSubtract -> transformation.scale(0.9090909f)
+                    }
+                } else {
+                    val step = when {
+                        !cursor.value -> size.toSize().minDimension / 200f
+                        it.isCtrlPressed -> 0.1f
+                        else -> 1f
+                    }
+                    when (it.key) {
+                        Key.DirectionLeft -> Offset(-step, 0f)
+                        Key.DirectionUp -> Offset(0f, -step)
+                        Key.DirectionRight -> Offset(step, 0f)
+                        Key.DirectionDown -> Offset(0f, step)
+                        else -> null
+                    }?.let {
+                        if (cursor.value) tapped.value += it
+                        else transformation.move(it)
                     }
                 }
                 if (it.type != KeyEventType.KeyUp) false

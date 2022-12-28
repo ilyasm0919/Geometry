@@ -1,7 +1,5 @@
 package com.ibis.geometry.common
 
-import androidx.compose.ui.geometry.center
-
 data class HtmlVideo(val drawer: HtmlDrawer, val rate: Number, var frame: Int): Screenshot.Record() {
     init {
         drawer.writer.write("var play=true;" +
@@ -10,7 +8,7 @@ data class HtmlVideo(val drawer: HtmlDrawer, val rate: Number, var frame: Int): 
                 "var time=0;" +
                 "setInterval(function(){" +
                 "if(!play)return;" +
-                "ctx.clearRect(${-drawer.size.center.x},${-drawer.size.center.y},${drawer.size.width},${drawer.size.height});" +
+                "ctx.clearRect(${drawer.bounds.left},${drawer.bounds.right},${drawer.bounds.width},${drawer.bounds.height});" +
                 "switch(time){")
     }
 

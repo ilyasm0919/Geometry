@@ -2,14 +2,13 @@ package com.ibis.geometry.common
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 
 interface TextDrawer {
     fun text(canvas: Canvas, pos: Offset, text: List<String>, color: Color)
 }
 
-class CanvasDrawer(private val textDrawer: TextDrawer, override val size: Size, private val canvas: Canvas): Drawer {
+class CanvasDrawer(private val textDrawer: TextDrawer, override val bounds: Rect, private val canvas: Canvas): Drawer {
     override fun point(offset: Offset, color: Color) {
         canvas.drawCircle(offset, 1.8f, Paint().also { it.color = color })
     }

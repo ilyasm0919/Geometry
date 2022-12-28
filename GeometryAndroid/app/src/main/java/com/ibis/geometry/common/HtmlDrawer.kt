@@ -2,12 +2,12 @@ package com.ibis.geometry.common
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import java.io.OutputStreamWriter
+import kotlin.math.PI
 
-class HtmlDrawer(size: Size, val writer: OutputStreamWriter): Drawer {
-    override val size = size * 200f / size.minDimension
+class HtmlDrawer(transformation: TransformationState, size: Size, val writer: OutputStreamWriter): Drawer {
+    override val bounds = transformation.getBounds(size)
 
     init {
         writer.write("<!DOCTYPE html>" +
@@ -16,8 +16,9 @@ class HtmlDrawer(size: Size, val writer: OutputStreamWriter): Drawer {
                 "<canvas id=\"canvas\" width=\"${size.width}\" height=\"${size.height}\"></canvas>" +
                 "<script>" +
                 "const ctx=document.getElementById(\"canvas\").getContext(\"2d\");" +
-                "ctx.translate(${size.center.x},${size.center.y});" +
-                "ctx.scale(${size.minDimension / 200},${size.minDimension / 200});" +
+                "ctx.scale(${transformation.zoom * size.minDimension / 200f},${transformation.zoom * size.minDimension / 200f});" +
+                "ctx.rotate(${transformation.rotation * PI / 180});" +
+                transformation.getTranslation(size).let { "ctx.translate(${it.x}, ${it.y});" } +
                 "ctx.lineWidth=0.8;")
     }
 

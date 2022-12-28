@@ -9,7 +9,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.*
@@ -56,6 +55,7 @@ fun App(inputFile: File, mediaStore: MediaStore, textDrawer: TextDrawer, fullscr
     val mode = remember { mutableStateOf(Mode.View) }
     val input = remember { mutableStateOf(TextFieldValue(inputFile.readText())) }
     val tapped = remember { mutableStateOf(Offset.Zero) }
+    val transformation = remember { TransformationState() }
     val cursor = remember { mutableStateOf(false) }
     val play = remember { mutableStateOf(true) }
     val time = remember { mutableStateOf(0) }
@@ -75,7 +75,7 @@ fun App(inputFile: File, mediaStore: MediaStore, textDrawer: TextDrawer, fullscr
         when (mode.value) {
             Mode.View ->
                 try { parse(input.value.text) } catch (e: Exception) { Static(listOf(Drawable {
-                    text(-size.center + Offset(10f, 10f), listOf(e.toString()), Color.Black)
+                    text(bounds.topLeft + Offset(10f, 10f), listOf(e.toString()), Color.Black)
                 } to null)) }.let { drawable ->
                     ViewMode(
                         mediaStore,
@@ -84,6 +84,7 @@ fun App(inputFile: File, mediaStore: MediaStore, textDrawer: TextDrawer, fullscr
                         fullscreen,
                         mode,
                         drawable,
+                        transformation,
                         cursor,
                         tapped,
                         play,

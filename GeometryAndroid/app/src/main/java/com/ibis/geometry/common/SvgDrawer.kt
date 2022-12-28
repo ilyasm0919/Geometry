@@ -2,20 +2,19 @@ package com.ibis.geometry.common
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import java.io.OutputStreamWriter
 import kotlin.math.PI
 import kotlin.math.abs
 
-class SvgDrawer(size: Size, val writer: OutputStreamWriter): Drawer {
+class SvgDrawer(transformation: TransformationState, size: Size, val writer: OutputStreamWriter): Drawer {
     private fun writeOpen(tag: String, vararg attributes: Pair<String, Any>) {
         writer.write("<$tag${attributes.joinToString("") { (name, value) ->
             " $name=\"$value\""
         }}")
     }
 
-    override val size = size * 200f / size.minDimension
+    override val bounds = transformation.getBounds(size)
 
     init {
         writeOpen(
@@ -28,7 +27,9 @@ class SvgDrawer(size: Size, val writer: OutputStreamWriter): Drawer {
         writeOpen(
             "g",
             "transform" to
-                    "translate(${size.center.x}, ${size.center.y}) scale(${size.minDimension / 200})",
+                    "scale(${transformation.zoom * size.minDimension / 200f}) " +
+                    "rotate(${transformation.rotation}) " +
+                    transformation.getTranslation(size).let { "translate(${it.x}, ${it.y})" },
             "stroke-width" to 0.8,
             "font-size" to 8,
             "font-family" to "roboto"
