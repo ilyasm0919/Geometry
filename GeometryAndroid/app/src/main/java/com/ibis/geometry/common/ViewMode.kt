@@ -86,7 +86,7 @@ fun ColumnScope.ViewMode(
                         Offset(bounds.right, tapped.value.y),
                         paint
                     )
-                } else if (chosen != null) {
+                } else if (chosen != null && chosen!! < movable.size) {
                     drawCircle(movable[chosen!!].pos.toOffset(), 3f, Paint().apply {
                         color = Color.Red
                         style = PaintingStyle.Stroke
@@ -188,7 +188,7 @@ fun ColumnScope.ViewMode(
             }.takeIf { it != -1 }.also { chosen = it } != null
         }, { chosen = null }) { value ->
             tapped.value = value
-            if (!cursor.value && chosen != null) {
+            if (!cursor.value && chosen != null && chosen!! < movable.size) {
                 val c = movable[chosen!!]
                 input.value = TextFieldValue(
                     input.value.text.replaceFirst(
