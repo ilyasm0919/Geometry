@@ -8,7 +8,7 @@ class ParseContext(
     var movableSource: String?
 )
 
-inline fun<A, B, C> Pair<A, C>.mapFst(selector: (A) -> B) = selector(first) to second
+inline fun<A, B, C> Pair<A, C>.mapFst(selector: (A) -> B) = selector(first) to second // to - Pair constructor
 inline fun<A, B, C> Pair<A, B>.mapSnd(selector: (B) -> C) = first to selector(second)
 
 fun parse(content: String) = ParseContext(mutableMapOf(), null).run {
@@ -117,6 +117,16 @@ fun parseComplex(line: String) = when {
 fun parseModifier(line: String): Pair<(Style) -> Unit, String> = parseWord(line)?.let { (word, next) ->
     fun set(action: Style.() -> Unit): (Style) -> Unit = action
     when (word) {
+        "scale" -> {
+            check(next.startsWith("(")) { error("Modifier \"scale\" is a function") }
+            parseReal(next.substring(1))?.let { (num, next) ->
+                if (num < 0) error("scale's argument has to be positive")
+                check(next.startsWith(")")) { error("Missing \")\"") }
+                return set { scale = num } to next.substring(1)
+            }
+        }
+    }
+    when (word) {
         "hide" -> set { border = Border.No }
         "dot" -> set { border = Border.Dot }
         "dash" -> set { border = Border.Dash }
@@ -144,6 +154,7 @@ fun parseModifiers(init: String): Pair<List<(Style) -> Unit>, String> {
     var line = init.trimStart()
     val modifiers = mutableListOf<(Style) -> Unit>()
     while (line.startsWith("[")) {
+//        TODO("add parser for [function(args)]")
         val (modifier, next) = parseModifier(line.substring(1))
         check(next.startsWith("]")) { "Expected ']'" }
         modifiers += modifier
@@ -153,6 +164,7 @@ fun parseModifiers(init: String): Pair<List<(Style) -> Unit>, String> {
 }
 
 fun parseWord(line: String): Pair<String, String>? =
-    line.takeWhile { it.isLetterOrDigit() || it in "_'{}" }.takeIf { it.isNotEmpty() && it[0].isLetter() && it != "i" }?.let {
+    line.takeWhile { it.isLetterOrDigit() || it in "_'{}" }
+        .takeIf { it.isNotEmpty() && it[0].isLetter() && it != "i" }?.let {
         it to line.substring(it.length).trimStart()
     }

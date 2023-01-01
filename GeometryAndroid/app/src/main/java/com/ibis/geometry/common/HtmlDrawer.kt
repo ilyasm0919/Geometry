@@ -62,7 +62,7 @@ class HtmlDrawer(transformation: TransformationState, size: Size, val writer: Ou
     }
 
     override fun angle(center: Offset, from: Float, to: Float, style: Style) = style.styled {
-        writer.write("ctx.arc(${center.x},${center.y},10,${-from},${-to},${from < to});" +
+        writer.write("ctx.arc(${center.x},${center.y},${10F * style.scale},${-from},${-to},${from < to});" +
                 "ctx.lineTo(${center.x},${center.y});" +
                 "ctx.closePath();")
     }

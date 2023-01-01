@@ -21,9 +21,9 @@ data class Angle(val center: Complex, val from: Float, val to: Float): Geometric
             val t = to.imagine().exp()*10
             polygon(listOf(
                 center,
-                center + f,
-                center + f + t,
-                center + t,
+                center + f * it.scale,
+                center + (f + t) * it.scale,
+                center + t * it.scale,
             ).map(Complex::toOffset), it)
         } else angle(center.toOffset(), from, to, it)
     }

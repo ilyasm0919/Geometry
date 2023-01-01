@@ -37,4 +37,4 @@ fun spans(text: String) = buildList {
     }
 }
 
-data class Style(var name: List<String>?, var color: Color, var border: Border, var equalityGroup: EqualityGroup?, var fill: Boolean)
+data class Style(var name: List<String>?, var color: Color, var border: Border, var equalityGroup: EqualityGroup?, var fill: Boolean, var scale: Float)

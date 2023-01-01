@@ -201,7 +201,7 @@ val functions = listOf(
             }
         },
     ),
-    "Triangle centers" to listOf(
+    "Triangle's centers" to listOf(
         point.function("centroid", polygon, ::centroid),
         point.function("circumcenter", triangle, ::circumcenter),
         point.function("orthocenter", triangle) { t ->
@@ -238,7 +238,7 @@ val functions = listOf(
             )
         },
     ),
-    "Geometry of triangle" to listOf(
+    "Geometry of a triangle" to listOf(
         circle.function("circumcircle", triangle, ::circumcircle),
         circle.function("incircle", triangle) { t ->
             incenter(t).let {
