@@ -37,7 +37,7 @@ class CanvasDrawer(private val textDrawer: TextDrawer, override val bounds: Rect
         textDrawer.text(canvas, pos, text, color)
 
     override fun angle(center: Offset, from: Float, to: Float, style: Style) = style.styled {
-        canvas.drawArcRad(Rect(center, 10f), -from, from - to, true, it)
+        canvas.drawArcRad(Rect(center, 10*style.scale), -from, from - to, true, it)
     }
 }
 

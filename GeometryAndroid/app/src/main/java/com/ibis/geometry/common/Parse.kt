@@ -136,6 +136,14 @@ fun parseModifier(line: String): Pair<(Style) -> Unit, String> = parseWord(line)
         "white" -> set { color = Color(0xFFFFFFFF) }
         "gray" -> set { color = Color(0xFF808080) }
         "black" -> set { color = Color(0xFF000000) }
+        "scale" -> {
+            check(next.startsWith("(")) { error("Expected '('") }
+            parseReal(next.substring(1).trimStart())?.let { (num, next) ->
+                check(num > 0) { "scale's argument has to be positive" }
+                check(next.startsWith(")")) { error("Expected ')'") }
+                return set { scale = num } to next.substring(1)
+            } ?: error("Parsing failed: $next")
+        }
         else -> error("Invalid modifier: $word")
     } to next
 } ?: error("Expected modifier: $line")
@@ -152,7 +160,10 @@ fun parseModifiers(init: String): Pair<List<(Style) -> Unit>, String> {
     return modifiers to line
 }
 
-fun parseWord(line: String): Pair<String, String>? =
-    line.takeWhile { it.isLetterOrDigit() || it in "_'{}" }.takeIf { it.isNotEmpty() && it[0].isLetter() && it != "i" }?.let {
-        it to line.substring(it.length).trimStart()
-    }
+fun parseWord(line: String): Pair<String, String>? = line.takeWhile {
+    it.isLetterOrDigit() || it in "_'{}"
+}.takeIf {
+    it.isNotEmpty() && it[0].isLetter() && it != "i"
+}?.let {
+    it to line.substring(it.length).trimStart()
+}

@@ -109,14 +109,14 @@ class SvgDrawer(transformation: TransformationState, size: Size, val writer: Out
     }
 
     override fun angle(center: Offset, from: Float, to: Float, style: Style) = style.styled {
-        val start = center + from.imagine().exp().toOffset() * 10f
-        val end = center + to.imagine().exp().toOffset() * 10f
+        val start = center + from.imagine().exp().toOffset() * (10f * style.scale)
+        val end = center + to.imagine().exp().toOffset() * (10f * style.scale)
         write(
             "path",
             "d" to """
                 M ${center.x} ${center.y}
                 L ${start.x} ${start.y}
-                A 10 10 0 ${if (abs(to - from) <= PI) 0 else 1} ${if (from <= to) 0 else 1} ${end.x} ${end.y}
+                A ${10 * style.scale} ${10 * style.scale} 0 ${if (abs(to - from) <= PI) 0 else 1} ${if (from <= to) 0 else 1} ${end.x} ${end.y}
                 Z
             """.trimIndent(),
             *it
