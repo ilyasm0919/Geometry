@@ -17,13 +17,13 @@ data class Angle(val center: Complex, val from: Float, val to: Float): Geometric
 
     override fun toDrawable() = Drawable {
         if (abs(abs(to - from) - PI/2) < 0.001f) {
-            val f = from.imagine().exp()*10
-            val t = to.imagine().exp()*10
+            val f = from.imagine().exp()*10*it.scale
+            val t = to.imagine().exp()*10*it.scale
             polygon(listOf(
                 center,
-                center + f * it.scale,
-                center + (f + t) * it.scale,
-                center + t * it.scale,
+                center + f,
+                center + f + t,
+                center + t,
             ).map(Complex::toOffset), it)
         } else angle(center.toOffset(), from, to, it)
     }

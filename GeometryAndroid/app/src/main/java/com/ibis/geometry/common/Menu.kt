@@ -51,10 +51,9 @@ fun Menu(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun App(inputFile: File, configFile: File?, mediaStore: MediaStore, textDrawer: TextDrawer, fullscreen: Boolean) {
+fun App(inputFile: File, mediaStore: MediaStore, textDrawer: TextDrawer, fullscreen: Boolean) {
     val mode = remember { mutableStateOf(Mode.View) }
     val input = remember { mutableStateOf(TextFieldValue(inputFile.readText())) }
-    val config = remember { mutableStateOf(TextFieldValue(configFile?.readText().orEmpty())) }
     val tapped = remember { mutableStateOf(Offset.Zero) }
     val transformation = remember { TransformationState() }
     val cursor = remember { mutableStateOf(false) }
@@ -97,7 +96,6 @@ fun App(inputFile: File, configFile: File?, mediaStore: MediaStore, textDrawer: 
                 fullscreen,
                 mode,
                 input,
-                config,
             )
         }
     }
