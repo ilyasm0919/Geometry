@@ -109,6 +109,12 @@ fun ColumnScope.ViewMode(
             if (cursor.value) MenuItem(Icons.Default.LocationDisabled, "Hide cursor")
             else MenuItem(Icons.Default.LocationSearching, "Show cursor")
         }
+        DropdownMenuItem({
+            transformation.reset()
+            hide()
+        }) {
+            MenuItem(Icons.Default.FilterAltOff, "Reset transformation")
+        }
         if (drawable !is Static) DropdownMenuItem({
             play.value = !play.value
             hide()
@@ -254,6 +260,10 @@ fun ColumnScope.ViewMode(
                     it.isCtrlPressed && it.key == Key.R && screenshot is Screenshot.Record -> {
                         (screenshot as Screenshot.Record).finish()
                         screenshot = Screenshot.No
+                        true
+                    }
+                    it.isCtrlPressed && it.key == Key.B -> {
+                        transformation.reset()
                         true
                     }
                     it.key == Key.C -> {

@@ -56,6 +56,13 @@ class TransformationState {
 
     fun getTranslation(size: Size) =
         (pan + untransform(size.center)) * 200f / size.minDimension
+
+    fun reset() {
+        pan = Offset.Zero
+        zoom = 1f
+        rotation = 0f
+        consumed.value++
+    }
 }
 
 fun Offset.rotate(degrees: Float) = (degrees * PI.toFloat() / 180).let {

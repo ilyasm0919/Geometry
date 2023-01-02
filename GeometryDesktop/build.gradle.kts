@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.ibis"
-version = "1.4.3"
+version = "2.0.0"
 
 repositories {
     google()
