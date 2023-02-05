@@ -15,9 +15,12 @@ import java.io.File
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() = application {
-    val inputFile = File("/${System.getenv("LocalAppData")}/GeometryDesktop/input.geo")
-    inputFile.parentFile.mkdirs()
+    val dataDir = File("/${System.getenv("LocalAppData")}/GeometryDesktop/")
+    val inputFile = File(dataDir, "input.geo")
+    val globalFile = File(dataDir, "global.geo")
+    dataDir.mkdirs()
     inputFile.createNewFile()
+    globalFile.createNewFile()
 
     val state = rememberWindowState()
     Window(
@@ -35,7 +38,7 @@ fun main() = application {
         }
     ) {
         GeometryTheme {
-            App(inputFile, MediaStore, TextDrawer, state.placement == WindowPlacement.Fullscreen)
+            App(inputFile, globalFile, MediaStore, TextDrawer, state.placement == WindowPlacement.Fullscreen)
         }
     }
 }

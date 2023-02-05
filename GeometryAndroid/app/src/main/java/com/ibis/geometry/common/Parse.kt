@@ -2,18 +2,28 @@ package com.ibis.geometry.common
 
 import androidx.compose.ui.graphics.Color
 
+typealias LocalFunctions = MutableMap<String, (List<Reactive<Geometric>>) -> Reactive<Geometric>>
+
 //Random(7605164863913659101)
 class ParseContext(
     val names: MutableMap<String, Reactive<Geometric>>,
-    val localFunctions: MutableMap<String, (List<Reactive<Geometric>>) -> Reactive<Geometric>>,
+    val localFunctions: LocalFunctions,
     var movableSource: String?
 )
 
 inline fun<A, B, C> Pair<A, C>.mapFst(selector: (A) -> B) = selector(first) to second
 inline fun<A, B, C> Pair<A, B>.mapSnd(selector: (B) -> C) = first to selector(second)
 
-fun parse(content: String) = ParseContext(mutableMapOf(), mutableMapOf(), null).run {
+fun LocalFunctions.parse(content: String) = ParseContext(mutableMapOf(), this, null).run {
     content.lines().filter(String::isNotBlank).mapNotNull(::parseLine).sequenceA()
+}
+
+fun parseGlobal(content: String) = ParseContext(mutableMapOf(), mutableMapOf(), null).run {
+    content.lines().filter(String::isNotBlank).forEach {
+        check(it.trimStart().startsWith("fun")) { "Expected 'fun'" }
+        parseFun(it.trimStart().substring(3).trimStart())
+    }
+    localFunctions
 }
 
 fun ParseContext.parseLine(init: String): Reactive<Pair<Drawable, Movable?>>? {

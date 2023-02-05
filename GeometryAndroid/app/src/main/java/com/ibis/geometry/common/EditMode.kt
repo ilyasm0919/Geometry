@@ -8,8 +8,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -28,9 +27,11 @@ import java.io.File
 @Composable
 fun EditMode(
     inputFile: File,
+    globalFile: File,
     fullscreen: Boolean,
     mode: MutableState<Mode>,
     input: MutableState<TextFieldValue>,
+    globalText: MutableState<String>,
 ) {
     val requester = remember { FocusRequester() }
     val showDocumentation = documentation()
@@ -54,6 +55,19 @@ fun EditMode(
             }) {
                 Text(it.first)
             }
+        }
+        DropdownMenuItem({
+            input.value = TextFieldValue(globalText.value)
+            hide()
+        }) {
+            MenuItem(Icons.Default.Download, "Load global file")
+        }
+        DropdownMenuItem({
+            globalText.value = input.value.text
+            globalFile.writeText(globalText.value)
+            hide()
+        }) {
+            MenuItem(Icons.Default.Upload, "Save to global file")
         }
     }
     TextField(input.value, {

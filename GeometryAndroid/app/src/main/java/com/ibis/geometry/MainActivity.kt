@@ -14,10 +14,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val inputFile = File(getExternalFilesDir(null), "input.geo")
+        val globalFile = File(getExternalFilesDir(null), "global.geo")
         inputFile.createNewFile()
+        globalFile.createNewFile()
         setContent {
             GeometryTheme {
-                App(inputFile, MediaStore(contentResolver), TextDrawer, false)
+                App(inputFile, globalFile, MediaStore(contentResolver), TextDrawer, false)
             }
         }
     }

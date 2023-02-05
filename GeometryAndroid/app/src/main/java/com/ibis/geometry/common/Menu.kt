@@ -51,9 +51,15 @@ fun Menu(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun App(inputFile: File, mediaStore: MediaStore, textDrawer: TextDrawer, fullscreen: Boolean) {
+fun App(inputFile: File, globalFile: File, mediaStore: MediaStore, textDrawer: TextDrawer, fullscreen: Boolean) {
     val mode = remember { mutableStateOf(Mode.View) }
     val input = remember { mutableStateOf(TextFieldValue(inputFile.readText())) }
+    val globalText = remember { mutableStateOf(globalFile.readText()) }
+    val global = remember(globalText.value) {
+        try {
+            parseGlobal(globalText.value)
+        } catch (_: Exception) { mutableMapOf() }
+    }
     val tapped = remember { mutableStateOf(Offset.Zero) }
     val transformation = remember { TransformationState() }
     val cursor = remember { mutableStateOf(false) }
@@ -74,7 +80,7 @@ fun App(inputFile: File, mediaStore: MediaStore, textDrawer: TextDrawer, fullscr
     }) {
         when (mode.value) {
             Mode.View ->
-                try { parse(input.value.text) } catch (e: Exception) { Static(listOf(Drawable {
+                try { global.parse(input.value.text) } catch (e: Exception) { Static(listOf(Drawable {
                     text(bounds.topLeft + Offset(10f, 10f), listOf(e.toString()), Color.Black)
                 } to null)) }.let { drawable ->
                     ViewMode(
@@ -93,9 +99,11 @@ fun App(inputFile: File, mediaStore: MediaStore, textDrawer: TextDrawer, fullscr
                 }
             Mode.Edit -> EditMode(
                 inputFile,
+                globalFile,
                 fullscreen,
                 mode,
                 input,
+                globalText
             )
         }
     }
