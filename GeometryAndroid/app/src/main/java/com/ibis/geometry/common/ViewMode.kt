@@ -47,7 +47,7 @@ fun ColumnScope.ViewMode(
     var movable by remember { mutableStateOf(listOf<Movable>()) }
     val currentDrawable = remember(drawable, time.value) {
         try {
-            drawable(ReactiveInput(time.value)).unzip().let {
+            drawable(ReactiveInput(time.value, emptyList())).unzip().let {
                 movable = it.second.filterNotNull()
                 it.first.sortedBy(Drawable::topmost)
             }

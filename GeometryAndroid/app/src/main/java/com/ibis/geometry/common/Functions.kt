@@ -9,7 +9,7 @@ interface ArgParser {
     operator fun<T> Arg<T>.invoke() = parser() ?: error("Expected $arg")
 }
 
-class Arg<T>(val arg: String, val parser: ArgParser.() -> T?) {
+class Arg<out T>(val arg: String, val parser: ArgParser.() -> T?) {
     override fun toString() = arg
 }
 
@@ -72,17 +72,19 @@ class Function(val name: String, private val args: List<String>, private val ret
     override fun toString() = "$name(${args.joinToString()}): $ret"
 }
 
-fun<T: Geometric> Arg<T>.mkFunction(name: String, vararg args: Any, parser: ArgParser.() -> T) = Function(name, args.map(Any::toString), arg) {
-    it.traverse { input ->
-        val arguments = object : ArgParser {
-            override val size = input.size
-            val iterator = input.iterator()
-            override fun nextArg() = if (iterator.hasNext()) iterator.next() else null
-        }
-        val res = parser(arguments)
-        check(!arguments.iterator.hasNext()) { "Unexpected arguments" }
-        res
+fun<T> parseArgs(args: List<Reactive<Geometric>>, parser: ArgParser.() -> T): Reactive<T> = args.traverse { input ->
+    val arguments = object : ArgParser {
+        override val size = input.size
+        val iterator = input.iterator()
+        override fun nextArg() = if (iterator.hasNext()) iterator.next() else null
     }
+    val res = parser(arguments)
+    check(!arguments.iterator.hasNext()) { "Unexpected arguments" }
+    res
+}
+
+fun<T: Geometric> Arg<T>.mkFunction(name: String, vararg args: Any, parser: ArgParser.() -> T) = Function(name, args.map(Any::toString), arg) {
+    parseArgs(it, parser)
 }
 fun<T: Geometric, T1> Arg<T>.function(
     name: String,
@@ -354,29 +356,29 @@ val functions = listOf(
     "Special" to listOf(
         Function("time", listOf(), "Natural") {
             check(it.isEmpty()) { "Unexpected arguments" }
-            Dynamic { time.real() }
+            Dynamic(timeUsed = true, argsUsed = false) { time.real() }
         },
         point.function("choose", geometric, real) { g, t -> g.choose(t.abs()) },
         Function("line_trace", listOf(point.arg), line.arg) {
             @Suppress("ComplexRedundantLet")
-            Static(it.single().let {
+            it.single().fixTime {
                 line(
-                    it(ReactiveInput(3658)) as? Complex ?: error("Expected point"),
-                    it(ReactiveInput(9137)) as? Complex ?: error("Expected point")
+                    it(3658) as? Complex ?: error("Expected point"),
+                    it(9137) as? Complex ?: error("Expected point")
                 )
-            })
+            }
         },
         Function("circle_trace", listOf(point.arg), circle.arg) {
             @Suppress("ComplexRedundantLet")
-            Static(it.single().let {
+            it.single().fixTime {
                 circumcircle(
                     Triangle(
-                        it(ReactiveInput(2709)) as? Complex ?: error("Expected point"),
-                        it(ReactiveInput(5073)) as? Complex ?: error("Expected point"),
-                        it(ReactiveInput(6349)) as? Complex ?: error("Expected point")
+                        it(2709) as? Complex ?: error("Expected point"),
+                        it(5073) as? Complex ?: error("Expected point"),
+                        it(6349) as? Complex ?: error("Expected point")
                     )
                 )
-            })
+            }
         },
         point.function("assert", point, point) { x, y ->
             check((x - y).norm < x.norm * 0.0001f) { "Assertion failed: $x != $y" }

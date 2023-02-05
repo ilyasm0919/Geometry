@@ -132,6 +132,31 @@ B = cintersect(A, l, c)
 
 ![](images/readme/ambiguity.svg)
 
+## Functions
+
+*Functions* are parts of code that can be called from other code.
+They are completely equivalent to built-in functions.
+For examples, lets draw a trilinear polar:
+
+```
+A = #(20+60i)
+B = #(60-40i)
+C = #(-60-40i)
+[orange] [fill] t = triangle(A, B, C)
+
+[red] P = #(80-10i)
+
+fun trilinear(Point A, Point B, Point C) = intersect(A, C, intersect(A, P, B, C), intersect(C, P, B, A))
+
+X = trilinear(A, B, C)
+Y = trilinear(B, C, A)
+Z = trilinear(C, A, B)
+
+[blue] line(X, Y)
+```
+
+![](images/readme/functions.svg)
+
 # Examples
 
 * [Butterfly theorem](examples/butterfly.geo)

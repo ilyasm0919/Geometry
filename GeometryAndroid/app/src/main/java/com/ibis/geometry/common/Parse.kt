@@ -5,17 +5,23 @@ import androidx.compose.ui.graphics.Color
 //Random(7605164863913659101)
 class ParseContext(
     val names: MutableMap<String, Reactive<Geometric>>,
+    val localFunctions: MutableMap<String, (List<Reactive<Geometric>>) -> Reactive<Geometric>>,
     var movableSource: String?
 )
 
 inline fun<A, B, C> Pair<A, C>.mapFst(selector: (A) -> B) = selector(first) to second
 inline fun<A, B, C> Pair<A, B>.mapSnd(selector: (B) -> C) = first to selector(second)
 
-fun parse(content: String) = ParseContext(mutableMapOf(), null).run {
-    content.lines().filter(String::isNotBlank).map(::parseLine).sequenceA()
+fun parse(content: String) = ParseContext(mutableMapOf(), mutableMapOf(), null).run {
+    content.lines().filter(String::isNotBlank).mapNotNull(::parseLine).sequenceA()
 }
 
-fun ParseContext.parseLine(init: String): Reactive<Pair<Drawable, Movable?>> {
+fun ParseContext.parseLine(init: String): Reactive<Pair<Drawable, Movable?>>? {
+    if (init.trimStart().startsWith("fun")) {
+        parseFun(init.trimStart().substring(3).trimStart())
+        return null
+    }
+
     val (modifiers, line) = parseModifiers(init)
     val index = line.indexOf("=")
     val value = line.substring(index + 1).trimStart()
@@ -32,6 +38,45 @@ fun ParseContext.parseLine(init: String): Reactive<Pair<Drawable, Movable?>> {
         drawable.style.name = spanned
         modifiers.forEach { it(drawable.style) }
         drawable to movable?.let { Movable(geometric as? Complex ?: error("Expected point"), it) }
+    }
+}
+
+fun ParseContext.parseFun(init: String) {
+    val (name, next) = parseWord(init) ?: error("Parsing failed: $init")
+    check(next.startsWith("(")) { "Expected '('" }
+    val (args, next2) = parseInfix(next.substring(1).trimStart(), {
+        parseWord(it)?.let { (type, next) ->
+            parseWord(next)?.mapFst {
+                listOf(it to when (type) {
+                    "Object" -> geometric
+                    "Real", "Complex", "Point" -> point
+                    "Line" -> line
+                    "Segment" -> segment
+                    "Triangle" -> triangle
+                    "Polygon" -> polygon
+                    "Circle" -> circle
+                    "Angle" -> angle
+                    else -> error("Type not found: $type")
+                })
+            }
+        } ?: error("Parsing failed: $it")
+    }, "," to { a, b -> a + b })
+    check(next2.startsWith(")")) { "Expected ')'" }
+    check(next2.substring(1).trimStart().startsWith("=")) { "Expected '='" }
+    val newContext = ParseContext(mutableMapOf<String, Reactive<Geometric>>().apply {
+        putAll(names)
+        args.forEachIndexed { i, (n, _) ->
+            put(n, Dynamic(timeUsed = false, argsUsed = true) {
+                this.args[i]
+            })
+        }
+    }, localFunctions, null)
+    val (body, next3) = newContext.parseSum(next2.substring(1).trimStart().substring(1).trimStart())
+    check(next3.isBlank()) { "Line not consumed: $next3" }
+    localFunctions.put(name) {
+        body.withArgs(parseArgs(it) {
+            args.map { it.second() }
+        })
     }
 }
 
@@ -92,7 +137,7 @@ fun ParseContext.parseAtom(line: String): Pair<Reactive<Geometric>, String> =
                 { parseSum(it).mapFst(::listOf) }, "," to { a, b -> a + b }
             )
             check(next2.startsWith(")")) { "Expected ')'" }
-            functions.flatMap { it.second }.find { it.name == word }?.parser?.invoke(args)?.to(next2.substring(1).trimStart())
+            (localFunctions[word] ?: functions.flatMap { it.second }.find { it.name == word }?.parser)?.invoke(args)?.to(next2.substring(1).trimStart())
         }
         else names[word]?.to(next) ?: error("Name not found: $word")
     } ?: parseComplex(line)?.let { (res, next) -> Static(res) to next.trimStart() }
