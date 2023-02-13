@@ -21,7 +21,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.sp
 import java.io.File
+import java.awt.Toolkit
+import kotlin.math.round
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -78,9 +82,14 @@ fun EditMode(
             .fillMaxSize()
             .horizontalScroll(rememberScrollState())
             .focusRequester(requester),
-        textStyle = TextStyle(fontFamily = FontFamily.Monospace),
+        textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = calculateFontSize()),
         colors = TextFieldDefaults.textFieldColors(backgroundColor = Color.White))
     LaunchedEffect(null) {
         requester.requestFocus()
     }
+}
+
+fun calculateFontSize(): TextUnit {
+    val screenSize = Toolkit.getDefaultToolkit().screenSize
+    return (round(screenSize.getHeight()/1920)*25).sp
 }
