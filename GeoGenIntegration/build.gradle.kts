@@ -1,10 +1,5 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
-    kotlin("jvm") version "1.6.10"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-    application
+    kotlin("multiplatform") version "1.9.0"
 }
 
 group = "com.ibis"
@@ -14,19 +9,21 @@ repositories {
     mavenCentral()
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-application {
-    mainClass.set("MainKt")
-}
-
-tasks.withType<Jar> {
-    manifest {
-        attributes["Main-Class"] = "MainKt"
+kotlin {
+    mingwX64("native") {
+        binaries {
+            executable()
+        }
     }
-    archiveBaseName.set("../bin/GeoGenIntegration")
-    archiveClassifier.set("")
-    archiveVersion.set("")
+    sourceSets {
+        val nativeMain by getting {
+            dependencies {
+                implementation("com.squareup.okio:okio:3.4.0")
+            }
+        }
+    }
+}
+
+tasks.withType<Wrapper> {
+    distributionType = Wrapper.DistributionType.BIN
 }

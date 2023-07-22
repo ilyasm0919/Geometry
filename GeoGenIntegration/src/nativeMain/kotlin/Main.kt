@@ -1,19 +1,22 @@
-import java.io.File
 import kotlin.system.exitProcess
-
+import okio.*
+import okio.Path.Companion.toPath
 
 data class GeoGenContext(
-    private val text: StringBuilder = StringBuilder(),
+    private val out: BufferedSink,
     private val points: MutableMap<String, String> = mutableMapOf(),
     private val lines: MutableMap<String, String> = mutableMapOf(),
     val triangles: MutableMap<String, String> = mutableMapOf(),
     val circles: MutableMap<String, String> = mutableMapOf(),
 ) {
-    fun text(line: String) = text.appendLine(line)
+    fun text(line: String) {
+        out.writeUtf8(line)
+        out.writeUtf8("\n")
+    }
     private fun obj(value: String, prefix: String, from: MutableMap<String, String>, hide: Boolean = false) =
         when (val res = from[value]) {
             null -> (prefix + from.size.inc()).also {
-                text("${"[hide] ".takeIf { hide }.orEmpty()}[gray] $it = $value")
+                text("${if (hide) "[hide] " else "[gray]"} $it = $value")
                 from[value] = it
             }
             else -> res
@@ -23,8 +26,6 @@ data class GeoGenContext(
     fun triangle(a: String, b: String, c: String) = obj("triangle($a, $b, $c)", "t", triangles)
     fun circle(value: String) = obj(value, "c", circles)
     fun circumcircle(t: String) = circle("circumcircle($t)")
-
-    override fun toString() = text.toString()
 }
 
 fun GeoGenContext.parseGeoGenInitial(line: String) {
@@ -243,13 +244,21 @@ fun GeoGenContext.parseGeoGenGoal(line: String) {
     })
 }
 
-fun parseGeoGen(text: String) = text.lines().filter(String::isNotBlank).dropLast(4).let {
-    GeoGenContext().run {
-        parseGeoGenInitial(it[0])
-        it.subList(1, it.size - 1).forEach(::parseGeoGenLine)
-        parseGeoGenGoal(it.last())
-        toString()
+fun parseGeoGen(text: BufferedSource, out: BufferedSink) = GeoGenContext(out).run {
+    parseGeoGenInitial(text.readUtf8Line() ?: error("No line"))
+
+    while (true) {
+        val line = text.readUtf8Line() ?: error("No line")
+        if (line == "") break
+        parseGeoGenLine(line)
     }
+
+    parseGeoGenGoal(text.readUtf8Line() ?: error("No line"))
+    text.readUtf8Line()?.takeIf { it == "" } ?: error("Bad line")
+    text.readUtf8Line() ?: error("No line")
+    text.readUtf8Line() ?: error("No line")
+    text.readUtf8Line() ?: error("No line")
+    text.readUtf8Line() ?: error("No line")
 }
 
 fun main(args: Array<String>) {
@@ -264,28 +273,35 @@ fun main(args: Array<String>) {
         exitProcess(-1)
     }
 
-    val input = File(args[0])
-    if (!input.canRead()) {
+    val fs = FileSystem.SYSTEM
+    val input = args[0].toPath()
+    if (!fs.exists(input)) {
         println("Cannot read file: $input")
         exitProcess(-2)
     }
 
-    val output = File(args[1])
-    if (!output.isDirectory) {
+    val output = args[1].toPath()
+    if (!fs.exists(output)) {
         println("Directory does not exists: $output")
         exitProcess(-3)
     }
 
-    var errors = 0
-    input.readText().split(Regex("^-+$", RegexOption.MULTILINE)).forEachIndexed { index, str ->
-        if (index == 0 || index % 2 != 0) return@forEachIndexed
-        try {
-            File(output, input.nameWithoutExtension + (index / 2) + ".geo")
-                .writeText(parseGeoGen(str))
-        } catch (e: Exception) {
-            println(e.toString())
-            errors++
+    fs.read(input) {
+        var number = 1
+        while (true) {
+            readUtf8Line()?.let { check(it.all { it == '-' }) { "Bad line: $it" } } ?: break
+            readUtf8Line()?.takeIf { it.startsWith("Theorem ") } ?: error("Bad line")
+            readUtf8Line()?.takeIf { it.all { it == '-' } } ?: error("Bad line")
+            readUtf8Line()?.takeIf { it == "" } ?: error("Bad line")
+            try {
+                fs.write((output / "${input.name}$number.geo"), true) {
+                    parseGeoGen(this@read, this@write)
+                }
+            } catch (e: Exception) {
+                println(e.toString())
+                exitProcess(number)
+            }
+            number++
         }
     }
-    exitProcess(errors)
 }
