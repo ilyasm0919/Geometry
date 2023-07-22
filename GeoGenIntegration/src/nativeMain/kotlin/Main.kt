@@ -9,20 +9,24 @@ data class GeoGenContext(
     val triangles: MutableMap<String, String> = mutableMapOf(),
     val circles: MutableMap<String, String> = mutableMapOf(),
 ) {
-    fun text(line: String) {
+    fun text(line: String = "") {
         out.writeUtf8(line)
         out.writeUtf8("\n")
     }
-    private fun obj(value: String, prefix: String, from: MutableMap<String, String>, hide: Boolean = false) =
+    fun comment(line: String) {
+        out.writeUtf8("!")
+        text(line)
+    }
+    private fun obj(value: String, prefix: String, from: MutableMap<String, String>, modificators: String = "[gray]") =
         when (val res = from[value]) {
             null -> (prefix + from.size.inc()).also {
-                text("${if (hide) "[hide] " else "[gray]"} $it = $value")
+                text("$modificators $it = $value")
                 from[value] = it
             }
             else -> res
         }
-    fun point(value: String, hide: Boolean) = obj(value, "p", points, hide)
-    fun line(a: String, b: String) = obj("line($a, $b)", "l", lines)
+    fun point(value: String, modificators: String = "[gray]") = obj(value, "p", points, modificators)
+    fun line(a: String, b: String) = obj("line($a, $b)", "l", lines, "[bounded] [gray]")
     fun triangle(a: String, b: String, c: String) = obj("triangle($a, $b, $c)", "t", triangles)
     fun circle(value: String) = obj(value, "c", circles)
     fun circumcircle(t: String) = circle("circumcircle($t)")
@@ -32,6 +36,7 @@ fun GeoGenContext.parseGeoGenInitial(line: String) {
     val index = line.indexOf(":")
     check(index != -1) { "Expected initial object" }
     val names = line.substring(index + 1).split(",").map(String::trim)
+    comment(line)
     text(when (val name = line.substring(0, index).trim()) {
         "LineSegment" -> {
             check(names.size == 2) { "Expected 2 points" }
@@ -104,6 +109,7 @@ fun GeoGenContext.parseGeoGenInitial(line: String) {
         }
         else -> error("Unexpected $name")
     })
+    text()
 }
 
 fun GeoGenContext.parseGeoGenLine(line: String) {
@@ -113,6 +119,7 @@ fun GeoGenContext.parseGeoGenLine(line: String) {
     val name = line.substring(0, index).trim()
     val args = line.substring(open + 1, line.length - 1)
         .filterNot("{}"::contains).split(",").map(String::trim)
+    comment(line)
     when (val funName = line.substring(index + 1, open).trim()) {
         "Centroid" -> "$name = centroid(${triangle(args[0], args[1], args[2])})"
         "CircleWithCenterThroughPoint" -> "$name = circle(${args.joinToString()})"
@@ -129,16 +136,15 @@ fun GeoGenContext.parseGeoGenLine(line: String) {
         "IntersectionOfLineAndLineFromPoints" -> "$name = intersect(${args[0]}, ${line(args[1], args[2])})"
         "IntersectionOfLinesFromPoints" -> "$name = intersect(${line(args[0], args[1])}, ${line(args[2], args[3])})"
         "IsoscelesTrapezoidPoint" -> "$name = symmetry(${args[0]}, midline(${args[1]}, ${args[2]}))"
-        "LineFromPoints" -> "$name = line(${args.joinToString()})"
+        "LineFromPoints" -> "[bounded] $name = line(${args.joinToString()})"
         "LineThroughCircumcenter" -> "$name = line(${args[0]}, ${
-            point(
-                "circumcenter(${args.joinToString()})",
-                false
-            )
+            point("circumcenter(${args.joinToString()})")
         })"
         "Median" -> "$name = line(${args[0]}, midpoint(${args[1]}, ${args[2]}))"
         "Midline" -> "$name = line(midpoint(${args[0]}, ${args[1]}), midpoint(${args[0]}, ${args[2]}))"
-        "Midpoint" -> "$name = midpoint(${args.joinToString()})"
+        "Midpoint" -> "$name = midpoint(${args.joinToString()})".also {
+            text("[gray] segment(${args.joinToString()})")
+        }
         "MidpointOfArc" -> "$name = cintersect(${args[0]}, " +
                 "exbisector(${args[2]}, ${args[0]}, ${args[1]}), ${circumcircle(args.joinToString())})"
         "MidpointOfOppositeArc" -> "$name = cintersect(${args[0]}, " +
@@ -146,8 +152,9 @@ fun GeoGenContext.parseGeoGenLine(line: String) {
         "NinePointCircle" -> "$name = euler_circle(${triangle(args[0], args[1], args[2])})"
         "OppositePointOnCircumcircle" -> "$name = center(${circumcircle(args.joinToString())}) * 2 - ${args[0]}"
         "Orthocenter" -> {
-            fun angle(a: String, b: String, c: String) = point("intersect($a, $name, $b, $c)", true).let {
-                text("[gray] segment($a, $it)")
+            fun angle(a: String, b: String, c: String) = point("intersect($a, $name, $b, $c)", "[dot]").let {
+                text("[bounded] [gray] line($a, $it)")
+                text("[bounded] [gray] line($b, $c)")
                 text("[gray] [fill] angle($a, $it, $b)")
             }
             text("$name = orthocenter(${triangle(args[0], args[1], args[2])})")
@@ -158,7 +165,11 @@ fun GeoGenContext.parseGeoGenLine(line: String) {
         }
         "ParallelLine" -> "$name = parallel(${args.joinToString()})"
         "ParallelLineToLineFromPoints" -> "$name = parallel(${args[0]}, ${line(args[1], args[2])})"
-        "ParallelogramPoint" -> "$name = ${args[1]} + ${args[2]} - ${args[0]}"
+        "ParallelogramPoint" -> {
+            text("$name = ${args[1]} + ${args[2]} - ${args[0]}")
+            text("[violet] [fill] polygon(${args[1]}, ${args[0]}, ${args[2]}, $name)")
+            null
+        }
         "PerpendicularBisector" -> "$name = midline(${args.joinToString()})"
         "PerpendicularLine" -> "$name = perpendicular(${args.joinToString()})"
         "PerpendicularLineToLineFromPoints" -> "$name = perpendicular(${args[0]}, ${line(args[1], args[2])})"
@@ -176,6 +187,7 @@ fun GeoGenContext.parseGeoGenLine(line: String) {
         "TangentLine" -> "$name = tangent1(${args[0]}, ${circumcircle(args.joinToString())})"
         else -> error("Unexpected $funName")
     }?.let(::text)
+    text()
 }
 
 fun GeoGenContext.parseGeoGenGoal(line: String) {
@@ -184,6 +196,7 @@ fun GeoGenContext.parseGeoGenGoal(line: String) {
     check(index != -1 && dash > index) { "Expected goal" }
     val args = line.substring(index + 1, dash)
         .filterNot("[]"::contains).split(",").map(String::trim)
+    comment(line)
     text(when (val name = line.substring(0, index).trim()) {
         "ConcyclicPoints" -> {
             check(args.size == 4) { "Expected 4 points" }
@@ -196,9 +209,9 @@ fun GeoGenContext.parseGeoGenGoal(line: String) {
         "ConcurrentLines" -> {
             check(args.size == 6) { "Expected 6 points" }
             """
-                [red] l = segment(${args[0]}, ${args[1]})
-                [red] m = segment(${args[2]}, ${args[3]})
-                [red] n = segment(${args[4]}, ${args[5]})
+                [red] l = line(${args[0]}, ${args[1]})
+                [red] m = line(${args[2]}, ${args[3]})
+                [red] n = line(${args[4]}, ${args[5]})
                 [red] intersect(l, m)
             """.trimIndent()
         }
@@ -237,7 +250,8 @@ fun GeoGenContext.parseGeoGenGoal(line: String) {
             """
                 [red] l = line(${args[0]}, ${args[1]})
                 [red] m = line(${args[2]}, ${args[3]})
-                [red] [fill] [dot] angle(${args[0]}, intersect(l, m), ${args[2]})
+                [hide] p = intersect(l, m)
+                [red] [fill] [dot] angle(p+dir(${args[0]}, ${args[1]}), p, p+dir(${args[2]}, ${args[3]}))
             """.trimIndent()
         }
         else -> error("Unexpected $name")
@@ -255,10 +269,11 @@ fun parseGeoGen(text: BufferedSource, out: BufferedSink) = GeoGenContext(out).ru
 
     parseGeoGenGoal(text.readUtf8Line() ?: error("No line"))
     text.readUtf8Line()?.takeIf { it == "" } ?: error("Bad line")
-    text.readUtf8Line() ?: error("No line")
-    text.readUtf8Line() ?: error("No line")
-    text.readUtf8Line() ?: error("No line")
-    text.readUtf8Line() ?: error("No line")
+    text()
+    comment(text.readUtf8Line() ?: error("No line"))
+    comment(text.readUtf8Line() ?: error("No line"))
+    comment(text.readUtf8Line() ?: error("No line"))
+    comment(text.readUtf8Line() ?: error("No line"))
 }
 
 fun main(args: Array<String>) {
@@ -289,7 +304,8 @@ fun main(args: Array<String>) {
     fs.read(input) {
         var number = 1
         while (true) {
-            readUtf8Line()?.let { check(it.all { it == '-' }) { "Bad line: $it" } } ?: break
+            if (number != 1) check((readUtf8Line() ?: break) == "") { "Bad line" }
+            readUtf8Line()?.takeIf { it.all { it == '-' } } ?: error("Bad line")
             readUtf8Line()?.takeIf { it.startsWith("Theorem ") } ?: error("Bad line")
             readUtf8Line()?.takeIf { it.all { it == '-' } } ?: error("Bad line")
             readUtf8Line()?.takeIf { it == "" } ?: error("Bad line")

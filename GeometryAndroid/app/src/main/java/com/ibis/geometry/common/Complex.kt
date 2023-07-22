@@ -64,7 +64,7 @@ data class Complex(val re: Float, val im: Float): Geometric() {
     override fun choose(time: Float) = this
 
     override fun toDrawable() = Drawable(this) {
-        if (it.border == Border.No) return@Drawable
+        if (it.border == Border.No || it.border == Border.Dot) return@Drawable
         val offset = toOffset()
         point(offset, it.color)
         it.name?.let { text ->
