@@ -15,7 +15,9 @@ inline fun<A, B, C> Pair<A, C>.mapFst(selector: (A) -> B) = selector(first) to s
 inline fun<A, B, C> Pair<A, B>.mapSnd(selector: (B) -> C) = first to selector(second)
 
 fun LocalFunctions.parse(content: String) = ParseContext(mutableMapOf(), this, null).run {
-    content.lines().filter(String::isNotBlank).mapNotNull(::parseLine).sequenceA()
+    content.lines().filter {
+        it.isNotBlank() && it.trimStart()[0] != '!'
+    }.mapNotNull(::parseLine).sequenceA()
 }
 
 fun parseGlobal(content: String) = ParseContext(mutableMapOf(), mutableMapOf(), null).run {
