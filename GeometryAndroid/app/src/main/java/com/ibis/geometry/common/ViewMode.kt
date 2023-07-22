@@ -47,9 +47,10 @@ fun ColumnScope.ViewMode(
     var movable by remember { mutableStateOf(listOf<Movable>()) }
     val currentDrawable = remember(drawable, time.value) {
         try {
+            visiblePoints.clear()
             drawable(ReactiveInput(time.value, emptyList())).unzip().let {
                 movable = it.second.filterNotNull()
-                it.first.sortedBy(Drawable::topmost)
+                it.first.map { d -> d to d.topmost }.sortedBy(Pair<Drawable, Boolean>::second).map(Pair<Drawable, Boolean>::first)
             }
         } catch(e: Exception) { listOf(Drawable {
             text(-size.toSize().center + Offset(10f, 10f), listOf(e.toString()), Color.Black)

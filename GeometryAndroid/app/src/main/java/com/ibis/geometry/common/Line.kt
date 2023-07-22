@@ -1,5 +1,7 @@
 package com.ibis.geometry.common
 
+import kotlin.math.abs
+
 // ~a * z + a * ~z + b = 0
 data class Line(val coef: Complex, val free: Float): Geometric() {
     // -(~z * a' + b') / ~a' * ~a - (z * ~a' + b') / a' * a + b = 0
@@ -27,7 +29,12 @@ data class Line(val coef: Complex, val free: Float): Geometric() {
 
     override fun toDrawable() = Drawable { style ->
         val epsilon = 0.001f
-        val points = listOf(
+        val points = if (style.bounded) visiblePoints.filter {
+            abs((coef.conj() * it).re + free / 2) < epsilon
+        }.let { // Compare points on horizontal lines by re and on vertical lines by im
+            if (abs(coef.re) > abs(coef.im)) listOf(it.minBy(Complex::re), it.maxBy(Complex::re))
+            else listOf(it.minBy(Complex::im), it.maxBy(Complex::im))
+        }.map(Complex::toOffset) else listOf(
             Line(Complex.ONE, -bounds.left * 2),
             Line(Complex.I, bounds.top * 2),
             Line(Complex.ONE, -bounds.right * 2),

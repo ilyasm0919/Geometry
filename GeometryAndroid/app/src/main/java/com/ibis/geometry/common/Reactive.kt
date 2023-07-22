@@ -1,5 +1,7 @@
 package com.ibis.geometry.common
 
+val visiblePoints = mutableListOf<Complex>()
+
 data class ReactiveInput(val time: Int, val args: List<Geometric>) {
     operator fun<T> Reactive<T>.invoke() = invoke(this@ReactiveInput)
 }

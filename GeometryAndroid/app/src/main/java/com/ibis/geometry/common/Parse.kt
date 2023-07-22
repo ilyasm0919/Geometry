@@ -180,6 +180,7 @@ fun parseModifier(line: String): Pair<(Style) -> Unit, String> = parseWord(line)
         "dash_dot" -> set { border = Border.DashDot }
         "fill" -> set { fill = true }
         "hide_label" -> set { name = null }
+        "bounded" -> set { bounded = true }
         "equal1" -> set { equalityGroup = EqualityGroup.Equal1 }
         "equal2" -> set { equalityGroup = EqualityGroup.Equal2 }
         "equal3" -> set { equalityGroup = EqualityGroup.Equal3 }
