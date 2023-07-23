@@ -30,7 +30,7 @@ data class Line(val coef: Complex, val free: Float): Geometric() {
     override fun toDrawable() = Drawable { style ->
         val epsilon = 0.001f
         val points = if (style.bounded) visiblePoints.filter {
-            abs((coef.conj() * it).re + free / 2) < epsilon
+            abs((coef.conj() * it).re + free / 2) < 2*epsilon
         }.let { // Compare points on vertical lines by im and on horizontal lines by re
             if (abs(coef.re) > abs(coef.im)) listOf(it.minBy(Complex::im), it.maxBy(Complex::im))
             else listOf(it.minBy(Complex::re), it.maxBy(Complex::re))
