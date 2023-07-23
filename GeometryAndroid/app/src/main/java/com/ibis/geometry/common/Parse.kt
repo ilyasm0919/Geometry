@@ -150,10 +150,27 @@ fun ParseContext.parseAtom(line: String): Pair<Reactive<Geometric>, String> =
             )
             check(next2.startsWith(")")) { "Expected ')'" }
             (localFunctions[word] ?: functions.flatMap { it.second }.find { it.name == word }?.parser)?.invoke(args)?.to(next2.substring(1).trimStart())
-        }
-        else names[word]?.to(next) ?: error("Name not found: $word")
+        } else names[word]?.to(next) ?: error("Name not found: $word")
+    }?.let { (obj, next) ->
+        if (next.startsWith(".")) parseInt(next.substring(1))?.mapFst { index ->
+            obj.map {
+                when (it) {
+                    is AbstractPolygon -> it.points[index]
+                    is Segment -> when (index) {
+                        0 -> it.from
+                        1 -> it.to
+                        else -> throw IndexOutOfBoundsException()
+                    }
+                    else -> error("Invalid indexation")
+                }
+            }
+        } else obj to next
     } ?: parseComplex(line)?.let { (res, next) -> Static(res) to next.trimStart() }
     ?: error("Parsing failed: $line")
+
+fun parseInt(line: String) = line.takeWhile("0123456789"::contains).let {
+    it.toIntOrNull()?.let { n -> n to line.substring(it.length) }
+}
 
 fun parseReal(init: String): Pair<Float, String>? {
     val (sign, line) = if (init.startsWith("-")) -1 to init.substring(1) else 1 to init
