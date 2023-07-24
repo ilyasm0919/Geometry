@@ -126,8 +126,8 @@ fun GeoGenContext.parseGeoGenLine(line: String) {
         "CircleWithDiameter" -> "$name = diameter_circle(${args.joinToString()})"
         "Circumcenter" -> "$name = center(${circumcircle(args.joinToString())})"
         "Circumcircle" -> "$name = circumcircle(${args.joinToString()})"
-        "Excenter" -> "$name = center(${circle("excircle(${triangle(args[2], args[0], args[1])})")})"
-        "Excircle" -> "$name = excircle(${triangle(args[2], args[0], args[1])})"
+        "Excenter" -> "$name = center(${circle("excircle(${args[2]}, ${args[0]}, ${args[1]})")})"
+        "Excircle" -> "$name = excircle(${args[2]}, ${args[0]}, ${args[1]})"
         "ExternalAngleBisector" -> "$name = exbisector(${args[2]}, ${args[0]}, ${args[1]})"
         "Incenter" -> "$name = center(${circle("incircle(${triangle(args[0], args[1], args[2])})")})"
         "Incircle" -> "$name = incircle(${triangle(args[0], args[1], args[2])})"
@@ -225,8 +225,8 @@ fun GeoGenContext.parseGeoGenGoal(line: String) {
         "LineTangentToCircle" -> {
             check(args.size == 5) { "Expected 5 points" }
             """
-                [red] l = line(${args[0]}, ${args[1]})
-                [red] c = circumcircle(${args[2]}, ${args[3]}, ${args[4]})
+                [red] c = circumcircle(${args[0]}, ${args[1]}, ${args[2]})
+                [red] l = line(${args[3]}, ${args[4]})
                 [red] cintersect1(l, c)
             """.trimIndent()
         }
