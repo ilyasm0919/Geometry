@@ -26,7 +26,7 @@ import java.io.File
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun EditMode(
-    inputFile: File,
+    fileManager: FileManager,
     globalFile: File,
     fullscreen: Boolean,
     mode: MutableState<Mode>,
@@ -57,6 +57,12 @@ fun EditMode(
             }
         }
         DropdownMenuItem({
+            hide()
+            fileManager.saveFile()
+        }) {
+            MenuItem(Icons.Default.Save, "Save as")
+        }
+        DropdownMenuItem({
             input.value = TextFieldValue(globalText.value)
             hide()
         }) {
@@ -72,7 +78,7 @@ fun EditMode(
     }
     TextField(input.value, {
         input.value = it
-        inputFile.writeText(input.value.text)
+        fileManager.writeFile(input.value.text)
     },
         Modifier
             .fillMaxSize()

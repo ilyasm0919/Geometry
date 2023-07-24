@@ -29,7 +29,7 @@ import java.util.*
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ColumnScope.ViewMode(
-    mediaStore: MediaStore,
+    fileManager: FileManager,
     textDrawer: TextDrawer,
     input: MutableState<TextFieldValue>,
     fullscreen: Boolean,
@@ -99,7 +99,7 @@ fun ColumnScope.ViewMode(
     }
 
     fun<T> startVideo(ext: String, drawer: (TransformationState, Size, OutputStreamWriter) -> T, video: (T, Number, Int) -> Screenshot.Record) {
-        screenshot = video(drawer(transformation, size.toSize(), mediaStore.init(ext).writer()), 18.451, 0)
+        screenshot = video(drawer(transformation, size.toSize(), fileManager.init(ext).writer()), 18.451, 0)
     }
 
     if (!fullscreen) Menu(mode) { hide ->
@@ -170,13 +170,13 @@ fun ColumnScope.ViewMode(
         if (drawable !is Static && play.value) time.value++
         when (screenshot) {
             Screenshot.No -> {}
-            Screenshot.Png -> mediaStore.saveImage("png", bmp)
-            Screenshot.Svg -> mediaStore.saveImage("svg") {
+            Screenshot.Png -> fileManager.saveImage("png", bmp)
+            Screenshot.Svg -> fileManager.saveImage("svg") {
                 val drawer = SvgDrawer(transformation, size.toSize(), it.writer())
                 currentDrawable.forEach(drawer::draw)
                 drawer.finish()
             }
-            Screenshot.Html -> mediaStore.saveImage("html") {
+            Screenshot.Html -> fileManager.saveImage("html") {
                 val drawer = HtmlDrawer(transformation, size.toSize(), it.writer())
                 currentDrawable.forEach(drawer::draw)
                 drawer.finish()

@@ -1,4 +1,6 @@
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -14,12 +16,14 @@ import com.ibis.geometry.common.theme.GeometryTheme
 import java.io.File
 
 @OptIn(ExperimentalComposeUiApi::class)
-fun main() = application {
+fun main(args: Array<String>) = application {
     val dataDir = File("/${System.getenv("LocalAppData")}/GeometryDesktop/")
-    val inputFile = File(dataDir, "input.geo")
-    val globalFile = File(dataDir, "global.geo")
+    val inputFile = remember {
+        mutableStateOf(if (args.size >= 1) File(args[0]) else File(dataDir, "input.geo"))
+    }
+    val globalFile = if (args.size >= 2) File(args[0]) else File(dataDir, "global.geo")
     dataDir.mkdirs()
-    inputFile.createNewFile()
+    inputFile.value.createNewFile()
     globalFile.createNewFile()
 
     val state = rememberWindowState()
@@ -38,7 +42,7 @@ fun main() = application {
         }
     ) {
         GeometryTheme {
-            App(inputFile, globalFile, MediaStore, TextDrawer, state.placement == WindowPlacement.Fullscreen)
+            App(globalFile, FileManager(window, inputFile), TextDrawer, state.placement == WindowPlacement.Fullscreen)
         }
     }
 }

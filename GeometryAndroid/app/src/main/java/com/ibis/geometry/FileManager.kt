@@ -3,14 +3,16 @@ package com.ibis.geometry
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.compose.runtime.State
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import java.io.OutputStream
 
-@JvmInline
-value class MediaStore(val resolver: ContentResolver) : com.ibis.geometry.common.MediaStore {
+class FileManager(private val resolver: ContentResolver, private val launcher: ManagedActivityResultLauncher<String, Uri?>, private val inputFile: State<Uri>) : com.ibis.geometry.common.FileManager {
     override fun writeImage(image: ImageBitmap, stream: OutputStream) {
         image.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 90, stream)
     }
@@ -50,4 +52,15 @@ value class MediaStore(val resolver: ContentResolver) : com.ibis.geometry.common
             }
         }
     }
+
+    override fun saveFile() {
+        launcher.launch("input.geo")
+    }
+
+    override fun writeFile(content: String) = resolver.openOutputStream(inputFile.value)!!.bufferedWriter().use {
+        it.write(content)
+        it.flush()
+    }
+
+    override fun readFile() = resolver.openInputStream(inputFile.value)!!.bufferedReader().use { it.readText() }
 }
