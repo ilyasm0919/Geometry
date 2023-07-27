@@ -118,7 +118,7 @@ fun GeoGenContext.parseGeoGenLine(line: String) {
     check(index != -1 && open > index && line.last() == ')') { "Expected definition" }
     val name = line.substring(0, index).trim()
     val args = line.substring(open + 1, line.length - 1)
-        .filterNot("{}"::contains).split(",").map(String::trim)
+        .filterNot("[](){}"::contains).split(",").map(String::trim)
     comment(line)
     when (val funName = line.substring(index + 1, open).trim()) {
         "Centroid" -> "$name = centroid(${triangle(args[0], args[1], args[2])})"
@@ -195,7 +195,7 @@ fun GeoGenContext.parseGeoGenGoal(line: String) {
     val dash = line.indexOf("-")
     check(index != -1 && dash > index) { "Expected goal" }
     val args = line.substring(index + 1, dash)
-        .filterNot("[]"::contains).split(",").map(String::trim)
+        .filterNot("[](){}"::contains).split(",").map(String::trim)
     comment(line)
     text(when (val name = line.substring(0, index).trim()) {
         "ConcyclicPoints" -> {
