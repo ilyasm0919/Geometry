@@ -1,11 +1,10 @@
 package com.ibis.geometry.common
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 
 interface Drawer {
-    val bounds: Rect
+    val zoom: Float get() = 1f
     fun point(offset: Offset, color: Color)
     fun circle(center: Offset, radius: Float, style: Style)
     fun line(from: Offset, to: Offset, style: Style)

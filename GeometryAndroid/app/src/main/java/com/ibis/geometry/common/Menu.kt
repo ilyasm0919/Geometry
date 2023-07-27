@@ -81,7 +81,7 @@ fun App(globalFile: File, fileManager: FileManager, textDrawer: TextDrawer, full
         when (mode.value) {
             Mode.View ->
                 try { global.parse(input.value.text) } catch (e: Exception) { Static(listOf(Drawable {
-                    text(bounds.topLeft + Offset(10f, 10f), listOf(e.toString()), Color.Black)
+                    text(Offset(10f, 10f), listOf(e.toString()), Color.Black)
                 } to null)) }.let { drawable ->
                     ViewMode(
                         fileManager,

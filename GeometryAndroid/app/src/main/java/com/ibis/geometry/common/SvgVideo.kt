@@ -1,9 +1,9 @@
 package com.ibis.geometry.common
 
-data class SvgVideo(val drawer: SvgDrawer, val rate: Number, var frame: Int): Screenshot.Record() {
+data class SvgVideo(val drawer: TransformationDrawer<SvgDrawer>, val rate: Number, var frame: Int): Screenshot.Record() {
     override fun frame(content: Drawer.() -> Unit) {
-        drawer.write("g", *if (frame == 0) arrayOf() else arrayOf("opacity" to 0)) {
-            drawer.write(
+        drawer.drawer.write("g", *if (frame == 0) arrayOf() else arrayOf("opacity" to 0)) {
+            drawer.drawer.write(
                 "set",
                 "id" to "show$frame",
                 "attributeName" to "opacity",
@@ -12,7 +12,7 @@ data class SvgVideo(val drawer: SvgDrawer, val rate: Number, var frame: Int): Sc
                 "dur" to "1ms",
                 "fill" to "freeze"
             )
-            drawer.write(
+            drawer.drawer.write(
                 "set",
                 "id" to "hide$frame",
                 "attributeName" to "opacity",
@@ -27,7 +27,7 @@ data class SvgVideo(val drawer: SvgDrawer, val rate: Number, var frame: Int): Sc
     }
 
     override fun finish() {
-        drawer.write(
+        drawer.drawer.write(
             "set",
             "id" to "finish",
             "attributeName" to "opacity",
@@ -35,6 +35,6 @@ data class SvgVideo(val drawer: SvgDrawer, val rate: Number, var frame: Int): Sc
             "begin" to "hide${frame-1}.begin",
             "dur" to "1ms"
         )
-        drawer.finish()
+        drawer.drawer.finish()
     }
 }

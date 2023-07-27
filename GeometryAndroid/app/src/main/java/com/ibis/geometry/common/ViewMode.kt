@@ -60,46 +60,46 @@ fun ColumnScope.ViewMode(
     val bmp = remember(size, currentDrawable, transformation.index, if (cursor.value) tapped.value else chosen) {
         ImageBitmap(size.width, size.height).also { bmp ->
             Canvas(bmp).apply {
-                val bounds = transformation.getBounds(size.toSize())
-                scale(transformation.zoom * size.toSize().minDimension / 200f)
-                rotate(transformation.rotation)
-                transformation.getTranslation(size.toSize()).let { translate(it.x, it.y) }
                 try {
-                    CanvasDrawer(textDrawer, bounds, this).let {
-                        currentDrawable.forEach(it::draw)
+                    CanvasDrawer(textDrawer, this).let {
+                        currentDrawable.forEach(TransformationDrawer(it, transformation, size.toSize())::draw)
                     }
                 } catch (_: Exception) {}
                 if (cursor.value) {
                     val paint = Paint().apply {
                         color = Color.Black
                         pathEffect = PathEffect.dashPathEffect(
-                            floatArrayOf(1f, 1f),
+                            Border.Dot.effect!!,
                             0f
                         )
                     }
-                    drawLine(
-                        Offset(tapped.value.x, bounds.top),
-                        Offset(tapped.value.x, bounds.bottom),
-                        paint
-                    )
-                    drawLine(
-                        Offset(bounds.left, tapped.value.y),
-                        Offset(bounds.right, tapped.value.y),
-                        paint
-                    )
+                    transformation.normalToScreen(tapped.value, size.toSize()).let {
+                        drawLine(
+                            Offset(it.x, 0f),
+                            Offset(it.x, size.height.toFloat()),
+                            paint
+                        )
+                        drawLine(
+                            Offset(0f, it.y),
+                            Offset(size.width.toFloat(), it.y),
+                            paint
+                        )
+                    }
                 } else if (chosen != null && chosen!! < movable.size) {
-                    drawCircle(movable[chosen!!].pos.toOffset(), 3f, Paint().apply {
+                    drawCircle(transformation.normalToScreen(movable[chosen!!].pos.toOffset(), size.toSize()), 15f, Paint().apply {
                         color = Color.Red
                         style = PaintingStyle.Stroke
-                        strokeWidth = 1f
+                        strokeWidth = 5f
                     })
                 }
             }
         }
     }
 
-    fun<T> startVideo(ext: String, drawer: (TransformationState, Size, OutputStreamWriter) -> T, video: (T, Number, Int) -> Screenshot.Record) {
-        screenshot = video(drawer(transformation, size.toSize(), fileManager.init(ext).writer()), 18.451, 0)
+    fun<T : Drawer> startVideo(ext: String, drawer: (Size, OutputStreamWriter) -> T, video: (TransformationDrawer<T>, Number, Int) -> Screenshot.Record) {
+        screenshot = video(size.toSize().let {
+            TransformationDrawer(drawer(it, fileManager.init(ext).writer()), transformation, it)
+        }, 18.451, 0)
     }
 
     if (!fullscreen) Menu(mode) { hide ->
@@ -172,13 +172,13 @@ fun ColumnScope.ViewMode(
             Screenshot.No -> {}
             Screenshot.Png -> fileManager.saveImage("png", bmp)
             Screenshot.Svg -> fileManager.saveImage("svg") {
-                val drawer = SvgDrawer(transformation, size.toSize(), it.writer())
-                currentDrawable.forEach(drawer::draw)
+                val drawer = SvgDrawer(size.toSize(), it.writer())
+                currentDrawable.forEach(TransformationDrawer(drawer, transformation, size.toSize())::draw)
                 drawer.finish()
             }
             Screenshot.Html -> fileManager.saveImage("html") {
-                val drawer = HtmlDrawer(transformation, size.toSize(), it.writer())
-                currentDrawable.forEach(drawer::draw)
+                val drawer = HtmlDrawer(size.toSize(), it.writer())
+                currentDrawable.forEach(TransformationDrawer(drawer, transformation, size.toSize())::draw)
                 drawer.finish()
             }
             is Screenshot.Record -> (screenshot as Screenshot.Record).frame {
@@ -235,7 +235,7 @@ fun ColumnScope.ViewMode(
                         Key.DirectionDown -> Offset(0f, step)
                         else -> null
                     }?.let {
-                        if (cursor.value) tapped.value += it
+                        if (cursor.value) tapped.value += it.rotate(-transformation.rotation)
                         else transformation.move(it)
                     }
                 }

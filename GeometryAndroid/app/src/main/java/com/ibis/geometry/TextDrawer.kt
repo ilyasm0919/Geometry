@@ -30,13 +30,13 @@ object TextDrawer: TextDrawer {
 
         val paint = TextPaint().apply {
             setColor(color.value.toLong())
-            textSize = 8f
+            textSize = 40f
         }
         val layout = StaticLayout.Builder.obtain(spanned, 0, spanned.length, paint,
             paint.measureText(spanned, 0, spanned.length).nextUp().roundToInt()).build()
 
-        canvas.translate(pos.x + 3f, pos.y - 6f)
+        canvas.translate(pos.x + 12f, pos.y - 24f)
         layout.draw(canvas.nativeCanvas)
-        canvas.translate(-pos.x - 3f, -pos.y + 6f)
+        canvas.translate(-pos.x - 12f, -pos.y + 24f)
     }
 }

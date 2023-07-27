@@ -7,14 +7,12 @@ import java.io.OutputStreamWriter
 import kotlin.math.PI
 import kotlin.math.abs
 
-class SvgDrawer(transformation: TransformationState, size: Size, val writer: OutputStreamWriter): Drawer {
+class SvgDrawer(size: Size, private val writer: OutputStreamWriter): Drawer {
     private fun writeOpen(tag: String, vararg attributes: Pair<String, Any>) {
         writer.write("<$tag${attributes.joinToString("") { (name, value) ->
             " $name=\"$value\""
         }}")
     }
-
-    override val bounds = transformation.getBounds(size)
 
     init {
         writeOpen(
@@ -26,12 +24,8 @@ class SvgDrawer(transformation: TransformationState, size: Size, val writer: Out
         writer.write(">")
         writeOpen(
             "g",
-            "transform" to
-                    "scale(${transformation.zoom * size.minDimension / 200f}) " +
-                    "rotate(${transformation.rotation}) " +
-                    transformation.getTranslation(size).let { "translate(${it.x}, ${it.y})" },
-            "stroke-width" to 0.8,
-            "font-size" to 8,
+            "stroke-width" to 4.2,
+            "font-size" to 40,
             "font-family" to "roboto"
         )
         writer.write(">")
@@ -56,7 +50,7 @@ class SvgDrawer(transformation: TransformationState, size: Size, val writer: Out
             "circle",
             "cx" to offset.x,
             "cy" to offset.y,
-            "r" to 1.8,
+            "r" to 9,
             "fill" to color.svg
         )
     }
@@ -95,8 +89,8 @@ class SvgDrawer(transformation: TransformationState, size: Size, val writer: Out
     override fun text(pos: Offset, text: List<String>, color: Color) {
         write(
             "text",
-            "x" to pos.x + 3f,
-            "y" to pos.y + 3f,
+            "x" to pos.x + 12f,
+            "y" to pos.y + 12f,
             "fill" to color.svg
         ) {
             text.forEachIndexed { index, str ->
@@ -109,14 +103,14 @@ class SvgDrawer(transformation: TransformationState, size: Size, val writer: Out
     }
 
     override fun angle(center: Offset, from: Float, to: Float, style: Style) = style.styled {
-        val start = center + from.imagine().exp().toOffset() * (10f * style.scale)
-        val end = center + to.imagine().exp().toOffset() * (10f * style.scale)
+        val start = center + from.imagine().exp().toOffset() * (50f * style.scale)
+        val end = center + to.imagine().exp().toOffset() * (50f * style.scale)
         write(
             "path",
             "d" to """
                 M ${center.x} ${center.y}
                 L ${start.x} ${start.y}
-                A ${10 * style.scale} ${10 * style.scale} 0 ${if (abs(to - from) <= PI) 0 else 1} ${if (from <= to) 0 else 1} ${end.x} ${end.y}
+                A ${50 * style.scale} ${50 * style.scale} 0 ${if (abs(to - from) <= PI) 0 else 1} ${if (from <= to) 0 else 1} ${end.x} ${end.y}
                 Z
             """.trimIndent(),
             *it

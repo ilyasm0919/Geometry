@@ -18,9 +18,9 @@ suspend fun PointerInputScope.detectDragOrTransform(
     forEachGesture {
         awaitPointerEventScope {
             val down = awaitFirstDown(requireUnconsumed = false)
-            if (onDragStart(transformation.transform(down.position, size.toSize()))) {
+            if (onDragStart(transformation.screenToNormal(down.position, size.toSize()))) {
                 drag(down.id) {
-                    onDrag(transformation.transform(it.position, size.toSize()))
+                    onDrag(transformation.screenToNormal(it.position, size.toSize()))
                     it.consume()
                 }
                 onDragEnd()

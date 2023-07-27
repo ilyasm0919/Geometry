@@ -1,26 +1,26 @@
 package com.ibis.geometry.common
 
-data class HtmlVideo(val drawer: HtmlDrawer, val rate: Number, var frame: Int): Screenshot.Record() {
+class HtmlVideo(val drawer: TransformationDrawer<HtmlDrawer>, val rate: Number, var frame: Int): Screenshot.Record() {
     init {
-        drawer.writer.write("var play=true;" +
+        drawer.drawer.writer.write("var play=true;" +
                 "document.onkeyup=function(e){if(e.keyCode==32)play=!play;};" +
                 "document.onclick=function(){play=!play;};" +
                 "var time=0;" +
                 "setInterval(function(){" +
                 "if(!play)return;" +
-                "ctx.clearRect(${drawer.bounds.left},${drawer.bounds.right},${drawer.bounds.width},${drawer.bounds.height});" +
+                "ctx.clearRect(0,0,${drawer.size.width},${drawer.size.height});" +
                 "switch(time){")
     }
 
     override fun frame(content: Drawer.() -> Unit) {
-        drawer.writer.write("case $frame:")
+        drawer.drawer.writer.write("case $frame:")
         drawer.content()
-        drawer.writer.write("break;")
+        drawer.drawer.writer.write("break;")
         frame++
     }
 
     override fun finish() {
-        drawer.writer.write("}time = (time+1)%$frame;},$rate);")
-        drawer.finish()
+        drawer.drawer.writer.write("}time = (time+1)%$frame;},$rate);")
+        drawer.drawer.finish()
     }
 }

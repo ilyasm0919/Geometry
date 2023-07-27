@@ -12,12 +12,12 @@ object TextDrawer : com.ibis.geometry.common.TextDrawer {
     override fun text(canvas: Canvas, pos: Offset, text: List<String>, color: Color) {
         val paint = Paint()
         paint.color = color.toArgb()
-        val font = Font(null, 8f)
-        val subscript = Font(null, 6f)
+        val font = Font(null, 40f)
+        val subscript = Font(null, 30f)
         var current = pos.x
         text.forEachIndexed { index, str ->
             val line = TextLine.make(str, if (index % 2 == 0) font else subscript)
-            canvas.nativeCanvas.drawTextLine(line, current + 3f, pos.y + if (index % 2 == 0) 3f else 6f, paint)
+            canvas.nativeCanvas.drawTextLine(line, current + 12f, pos.y + if (index % 2 == 0) 12f else 24f, paint)
             current += line.width
         }
     }

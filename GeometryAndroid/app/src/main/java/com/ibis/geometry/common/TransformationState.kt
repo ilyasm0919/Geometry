@@ -2,18 +2,17 @@ package com.ibis.geometry.common
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.geometry.*
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.center
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
 class TransformationState {
-    var pan: Offset = Offset.Zero
-        private set
+    private var pan: Offset = Offset.Zero
     var zoom: Float = 1f
-        private set
     var rotation: Float = 0f
-        private set
     private var consumed: MutableState<Int> = mutableStateOf(0)
     val index get() = consumed.value
     fun apply(centroid: Offset, panChange: Offset, zoomChange: Float, rotationChange: Float) {
@@ -37,25 +36,13 @@ class TransformationState {
         consumed.value++
     }
 
-    fun untransform(point: Offset) = point.rotate(-rotation) / zoom
+    private fun untransform(point: Offset) = point.rotate(-rotation) / zoom
 
-    fun getBounds(size: Size): Rect {
-        val points = size.toRect().let {
-            listOf(it.topLeft, it.topRight, it.bottomRight, it.bottomLeft)
-        }.map { transform(it, size) }
-        return Rect(
-            points.minOf(Offset::x),
-            points.minOf(Offset::y),
-            points.maxOf(Offset::x),
-            points.maxOf(Offset::y)
-        )
-    }
-
-    fun transform(point: Offset, size: Size) =
+    fun screenToNormal(point: Offset, size: Size) =
         (untransform(point - size.center) - pan) * 200f / size.minDimension
 
-    fun getTranslation(size: Size) =
-        (pan + untransform(size.center)) * 200f / size.minDimension
+    fun normalToScreen(point: Offset, size: Size) =
+        (point * size.minDimension / 200f + pan).rotate(rotation) * zoom + size.center
 
     fun reset() {
         pan = Offset.Zero

@@ -4,11 +4,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import java.io.OutputStreamWriter
-import kotlin.math.PI
 
-class HtmlDrawer(transformation: TransformationState, size: Size, val writer: OutputStreamWriter): Drawer {
-    override val bounds = transformation.getBounds(size)
-
+class HtmlDrawer(size: Size, val writer: OutputStreamWriter): Drawer {
     init {
         writer.write("<!DOCTYPE html>" +
                 "<html>" +
@@ -16,10 +13,7 @@ class HtmlDrawer(transformation: TransformationState, size: Size, val writer: Ou
                 "<canvas id=\"canvas\" width=\"${size.width}\" height=\"${size.height}\"></canvas>" +
                 "<script>" +
                 "const ctx=document.getElementById(\"canvas\").getContext(\"2d\");" +
-                "ctx.scale(${transformation.zoom * size.minDimension / 200f},${transformation.zoom * size.minDimension / 200f});" +
-                "ctx.rotate(${transformation.rotation * PI / 180});" +
-                transformation.getTranslation(size).let { "ctx.translate(${it.x}, ${it.y});" } +
-                "ctx.lineWidth=0.8;")
+                "ctx.lineWidth=4.2;")
     }
 
     fun finish() {
@@ -29,7 +23,7 @@ class HtmlDrawer(transformation: TransformationState, size: Size, val writer: Ou
 
     override fun point(offset: Offset, color: Color) {
         writer.write("ctx.beginPath();" +
-                "ctx.arc(${offset.x},${offset.y},1.8,0,2*Math.PI);" +
+                "ctx.arc(${offset.x},${offset.y},9,0,2*Math.PI);" +
                 "ctx.fillStyle=\"${color.svg}\";" +
                 "ctx.fill();")
     }
@@ -53,16 +47,16 @@ class HtmlDrawer(transformation: TransformationState, size: Size, val writer: Ou
 
     override fun text(pos: Offset, text: List<String>, color: Color) {
         writer.write("ctx.beginPath();" +
-                "var x=${pos.x + 3};")
+                "var x=${pos.x + 12};")
         text.forEachIndexed { index, str ->
-            writer.write("ctx.font=\"${if (index % 2 == 0) 8 else 6}px roboto\";" +
-                    "ctx.fillText(\"$str\",x,${pos.y + if (index % 2 == 0) 3 else 6});" +
+            writer.write("ctx.font=\"${if (index % 2 == 0) 40 else 30}px roboto\";" +
+                    "ctx.fillText(\"$str\",x,${pos.y + if (index % 2 == 0) 12 else 24});" +
                     "x+=ctx.measureText(\"$str\").width;")
         }
     }
 
     override fun angle(center: Offset, from: Float, to: Float, style: Style) = style.styled {
-        writer.write("ctx.arc(${center.x},${center.y},${10 * style.scale},${-from},${-to},${from < to});" +
+        writer.write("ctx.arc(${center.x},${center.y},${50 * style.scale},${-from},${-to},${from < to});" +
                 "ctx.lineTo(${center.x},${center.y});" +
                 "ctx.closePath();")
     }

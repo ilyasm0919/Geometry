@@ -18,8 +18,8 @@ data class Segment(val from: Complex, val to: Complex): Geometric() {
         line(from.toOffset(), to.toOffset(), it)
         val center = (from + to).toOffset() / 2f
         val normed = normalize(to - from)
-        val delta = (normed * 3.imagine()).toOffset()
-        val step = normed.toOffset()
+        val delta = (normed * 3.imagine()).toOffset() / zoom
+        val step = normed.toOffset() / zoom
         when (it.equalityGroup) {
             EqualityGroup.Equal1 -> {
                 line(center - delta, center + delta, it)
@@ -37,7 +37,7 @@ data class Segment(val from: Complex, val to: Complex): Geometric() {
                 line(center - step * 2f + delta, center - delta, it)
                 line(center + step * 2f + delta, center - delta, it)
             }
-            EqualityGroup.EqualO -> circle(center, 2.5f, it)
+            EqualityGroup.EqualO -> circle(center, 2.5f/zoom, it)
             null -> {}
         }
     }

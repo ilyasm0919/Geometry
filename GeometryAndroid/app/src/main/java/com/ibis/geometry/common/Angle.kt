@@ -17,8 +17,8 @@ data class Angle(val center: Complex, val from: Float, val to: Float): Geometric
 
     override fun toDrawable() = Drawable {
         if (abs(abs(to - from) - PI/2) < 0.001f) {
-            val f = from.imagine().exp()*10*it.scale
-            val t = to.imagine().exp()*10*it.scale
+            val f = from.imagine().exp()*10*it.scale/zoom
+            val t = to.imagine().exp()*10*it.scale/zoom
             polygon(listOf(
                 center,
                 center + f,

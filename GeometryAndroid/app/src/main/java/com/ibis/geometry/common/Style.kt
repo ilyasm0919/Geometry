@@ -4,9 +4,9 @@ import androidx.compose.ui.graphics.Color
 
 enum class Border(val effect: FloatArray?) {
     No(null),
-    Dot(floatArrayOf(1f, 1f)),
-    Dash(floatArrayOf(5f, 5f)),
-    DashDot(floatArrayOf(5f, 2f, 1f, 2f)),
+    Dot(floatArrayOf(5f, 5f)),
+    Dash(floatArrayOf(25f, 25f)),
+    DashDot(floatArrayOf(25f, 10f, 5f, 10f)),
     Line(null);
 }
 

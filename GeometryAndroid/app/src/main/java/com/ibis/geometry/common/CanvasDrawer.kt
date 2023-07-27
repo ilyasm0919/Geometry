@@ -8,9 +8,9 @@ interface TextDrawer {
     fun text(canvas: Canvas, pos: Offset, text: List<String>, color: Color)
 }
 
-class CanvasDrawer(private val textDrawer: TextDrawer, override val bounds: Rect, private val canvas: Canvas): Drawer {
+class CanvasDrawer(private val textDrawer: TextDrawer, private val canvas: Canvas): Drawer {
     override fun point(offset: Offset, color: Color) {
-        canvas.drawCircle(offset, 1.8f, Paint().also { it.color = color })
+        canvas.drawCircle(offset, 9f, Paint().also { it.color = color })
     }
 
     override fun circle(center: Offset, radius: Float, style: Style) = style.styled {
@@ -37,7 +37,7 @@ class CanvasDrawer(private val textDrawer: TextDrawer, override val bounds: Rect
         textDrawer.text(canvas, pos, text, color)
 
     override fun angle(center: Offset, from: Float, to: Float, style: Style) = style.styled {
-        canvas.drawArcRad(Rect(center, 10*style.scale), -from, from - to, true, it)
+        canvas.drawArcRad(Rect(center, 50*style.scale), -from, from - to, true, it)
     }
 }
 
@@ -51,6 +51,6 @@ private fun Style.styled(action: (Paint) -> Unit) {
         color = this@styled.color
         style = PaintingStyle.Stroke
         pathEffect = border.effect?.let(PathEffect.Companion::dashPathEffect)
-        strokeWidth = 0.8f
+        strokeWidth = 4.2f
     })
 }

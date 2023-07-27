@@ -35,13 +35,13 @@ data class Line(val coef: Complex, val free: Float): Geometric() {
             if (abs(coef.re) > abs(coef.im)) listOf(it.minBy(Complex::im), it.maxBy(Complex::im))
             else listOf(it.minBy(Complex::re), it.maxBy(Complex::re))
         }.map(Complex::toOffset) else listOf(
-            Line(Complex.ONE, -bounds.left * 2),
-            Line(Complex.I, bounds.top * 2),
-            Line(Complex.ONE, -bounds.right * 2),
-            Line(Complex.I, bounds.bottom * 2),
+            Line(Complex.ONE, 200f),
+            Line(Complex.I, -200f),
+            Line(Complex.ONE, -200f),
+            Line(Complex.I, 200f),
         ).filter { (coef * it.coef).im != 0f }.map { intersect(this@Line, it).toOffset() }.filter {
-            it.x in bounds.left-epsilon..bounds.right+epsilon &&
-            it.y in bounds.top-epsilon..bounds.bottom+epsilon
+            it.x in -100f-epsilon..100f+epsilon &&
+            it.y in -100f-epsilon..100f+epsilon
         }
         if (points.size == 2) line(points[0], points[1], style)
     }
