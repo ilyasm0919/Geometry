@@ -74,10 +74,10 @@ data class Complex(val re: Float, val im: Float): Geometric() {
 
     override fun toString() = when {
         this == ZERO -> "0"
-        re == 0f -> "${im}i"
-        im == 0f -> "$re"
-        im < 0f -> "$re${im}i"
-        else -> "$re+${im}i"
+        re == 0f -> "%.5fi".format(null, im)
+        im == 0f -> "%.5f".format(null, re)
+        im < 0f -> "%.5f%.5fi".format(null, re, im)
+        else -> "%.5f+%.5fi".format(null, re, im)
     }
 
     companion object {

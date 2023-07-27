@@ -2,9 +2,7 @@ package com.ibis.geometry.common
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.geometry.center
+import androidx.compose.ui.geometry.*
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -37,6 +35,18 @@ class TransformationState {
     }
 
     private fun untransform(point: Offset) = point.rotate(-rotation) / zoom
+
+    fun getBounds(size: Size): Rect {
+        val points = size.toRect().let {
+            listOf(it.topLeft, it.topRight, it.bottomRight, it.bottomLeft)
+        }.map { screenToNormal(it, size) }
+        return Rect(
+            points.minOf(Offset::x),
+            points.minOf(Offset::y),
+            points.maxOf(Offset::x),
+            points.maxOf(Offset::y)
+        )
+    }
 
     fun screenToNormal(point: Offset, size: Size) =
         (untransform(point - size.center) - pan) * 200f / size.minDimension

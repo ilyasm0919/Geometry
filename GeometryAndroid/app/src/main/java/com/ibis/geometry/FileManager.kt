@@ -57,7 +57,7 @@ class FileManager(private val resolver: ContentResolver, private val launcher: M
         launcher.launch("input.geo")
     }
 
-    override fun writeFile(content: String) = resolver.openOutputStream(inputFile.value)!!.bufferedWriter().use {
+    override fun writeFile(content: String) = resolver.openOutputStream(inputFile.value, "wt")!!.bufferedWriter().use {
         it.write(content)
         it.flush()
     }

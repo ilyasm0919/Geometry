@@ -191,7 +191,7 @@ fun ColumnScope.ViewMode(
         detectDragOrTransform(transformation, { value ->
             tapped.value = value
             cursor.value || movable.indexOfFirst {
-                (it.pos.toOffset() - value).getDistanceSquared() < 40f
+                (it.pos.toOffset() - value).getDistanceSquared() < 40f/transformation.zoom.let { it*it }
             }.takeIf { it != -1 }.also { chosen = it } != null
         }, { chosen = null }) { value ->
             tapped.value = value
