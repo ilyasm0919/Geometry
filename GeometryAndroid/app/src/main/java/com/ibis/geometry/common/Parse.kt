@@ -218,7 +218,7 @@ fun parseModifier(line: String): Pair<(Style) -> Unit, String> = parseWord(line)
         "white" -> set { color = Color(0xFFFFFFFF) }
         "dark_gray" -> set { color = Color(0xFF303030) }
         "gray" -> set { color = Color(0xFF808080) }
-        "light_grray" -> set { color = Color(0xFFBABABA) }
+        "light_gray" -> set { color = Color(0xFFBABABA) }
         "black" -> set { color = Color(0xFF000000) }
         "scale" -> {
             check(next.startsWith("(")) { error("Expected '('") }
