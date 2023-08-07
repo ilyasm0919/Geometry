@@ -203,13 +203,22 @@ fun parseModifier(line: String): Pair<(Style) -> Unit, String> = parseWord(line)
         "equal3" -> set { equalityGroup = EqualityGroup.Equal3 }
         "equalV" -> set { equalityGroup = EqualityGroup.EqualV }
         "equalO" -> set { equalityGroup = EqualityGroup.EqualO }
+        "dark_red" -> set { color = Color(0xFF87221D) }
         "red" -> set { color = Color(0xFFB20000) }
+        "light_red" -> set { color = Color(0xFFCE4B46) }
+        "dark_green" -> set { color = Color(0xFF259826) }
         "green" -> set { color = Color(0xFF00B200) }
+        "light_green" -> set { color = Color(0xFFAAE9B2) }
+        "dark_blue" -> set { color = Color(0xFF22226D) }
         "blue" -> set { color = Color(0xFF0000B2) }
+        "light_blue" -> set { color = Color(0xFF3DD5FF) }
         "orange" -> set { color = Color(0xFFB26600) }
         "violet" -> set { color = Color(0xFF9400D3) }
+        "purple" -> set { color = Color(0xFF7851A9) }
         "white" -> set { color = Color(0xFFFFFFFF) }
+        "dark_gray" -> set { color = Color(0xFF303030) }
         "gray" -> set { color = Color(0xFF808080) }
+        "light_grray" -> set { color = Color(0xFFBABABA) }
         "black" -> set { color = Color(0xFF000000) }
         "scale" -> {
             check(next.startsWith("(")) { error("Expected '('") }
