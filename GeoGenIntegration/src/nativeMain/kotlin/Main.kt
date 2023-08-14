@@ -17,7 +17,7 @@ data class GeoGenContext(
         out.writeUtf8("!")
         text(line)
     }
-    private fun obj(value: String, prefix: String, from: MutableMap<String, String>, modificators: String = "[gray]") =
+    private fun obj(value: String, prefix: String, from: MutableMap<String, String>, modificators: String) =
         when (val res = from[value]) {
             null -> (prefix + from.size.inc()).also {
                 text("$modificators $it = $value")
@@ -26,10 +26,10 @@ data class GeoGenContext(
             else -> res
         }
     fun point(value: String, modificators: String = "[gray]") = obj(value, "p", points, modificators)
-    fun line(a: String, b: String) = obj("line($a, $b)", "l", lines, "[bounded] [gray]")
-    fun triangle(a: String, b: String, c: String) = obj("triangle($a, $b, $c)", "t", triangles)
-    fun circle(value: String) = obj(value, "c", circles)
-    fun circumcircle(t: String) = circle("circumcircle($t)")
+    fun line(a: String, b: String, modificators: String = "[bounded] [gray]") = obj("line($a, $b)", "l", lines, modificators)
+    fun triangle(a: String, b: String, c: String) = obj("triangle($a, $b, $c)", "t", triangles, "[gray]")
+    fun circle(value: String, modificators: String = "[gray]") = obj(value, "c", circles, modificators)
+    fun circumcircle(t: String, modificators: String = "[gray]") = circle("circumcircle($t)", modificators)
 }
 
 fun GeoGenContext.parseGeoGenInitial(line: String) {
@@ -193,11 +193,36 @@ fun GeoGenContext.parseGeoGenLine(line: String) {
 
 fun GeoGenContext.parseGeoGenGoal(line: String) {
     val index = line.indexOf(":")
-    val dash = line.indexOf("-")
-    check(index != -1 && dash > index) { "Expected goal" }
-    val args = line.substring(index + 1, dash)
-        .filterNot("[](){}"::contains).split(",").map(String::trim)
+    check(index != -1) { "Expected goal" }
     comment(line)
+    val args = buildList {
+        var l = line.substring(index + 1).trimStart()
+        while (true) {
+            add(when (l[0]) {
+                '[' -> {
+                    val a = l.indexOf(",")
+                    val b = l.indexOf("]", a + 1)
+                    line(l.substring(1, a), l.substring(a + 1, b).trimStart(), "[red]").also {
+                        l = l.substring(b + 1)
+                    }
+                }
+                '(' -> {
+                    val a = l.indexOf(")")
+                    circumcircle(l.substring(1, a), "[red]").also {
+                        l = l.substring(a + 1)
+                    }
+                }
+                else -> {
+                    val a = l.indexOfFirst { !it.isLetter() }
+                    l.substring(0, a).also {
+                        l = l.substring(a)
+                    }
+                }
+            })
+            if (l.startsWith(",")) l = l.substring(1).trimStart()
+            else break
+        }
+    }
     text(when (val name = line.substring(0, index).trim()) {
         "ConcyclicPoints" -> {
             check(args.size == 4) { "Expected 4 points" }
@@ -208,13 +233,8 @@ fun GeoGenContext.parseGeoGenGoal(line: String) {
             "[red] [dash] line(${args[0]}, ${args[1]})"
         }
         "ConcurrentLines" -> {
-            check(args.size == 6) { "Expected 6 points" }
-            """
-                [red] l = line(${args[0]}, ${args[1]})
-                [red] m = line(${args[2]}, ${args[3]})
-                [red] n = line(${args[4]}, ${args[5]})
-                [red] intersect(l, m)
-            """.trimIndent()
+            check(args.size == 3) { "Expected 3 lines" }
+            "[red] intersect(${args[0]}, ${args[1]})"
         }
         "EqualLineSegments" -> {
             check(args.size == 4) { "Expected 4 points" }
@@ -224,35 +244,22 @@ fun GeoGenContext.parseGeoGenGoal(line: String) {
             """.trimIndent()
         }
         "LineTangentToCircle" -> {
-            check(args.size == 5) { "Expected 5 points" }
-            """
-                [red] c = circumcircle(${args[0]}, ${args[1]}, ${args[2]})
-                [red] l = line(${args[3]}, ${args[4]})
-                [red] cintersect1(l, c)
-            """.trimIndent()
+            check(args.size == 2) { "Expected 1 circle and 1 line" }
+            "cintersect1(${args[1]}, ${args[0]})"
         }
         "TangentCircles" -> {
-            check(args.size == 6) { "Expected 6 points" }
-            """
-                [red] c1 = circumcircle(${args[0]}, ${args[1]}, ${args[2]})
-                [red] c2 = circumcircle(${args[3]}, ${args[4]}, ${args[5]})
-                [red] ccintersect1(c1, c2)
-            """.trimIndent()
+            check(args.size == 2) { "Expected 2 circles" }
+            "[red] ccintersect1(${args[0]}, ${args[1]})"
         }
         "ParallelLines" -> {
-            check(args.size == 4) { "Expected 4 points" }
-            """
-                [red] segment(${args[0]}, ${args[1]})
-                [red] segment(${args[2]}, ${args[3]})
-            """.trimIndent()
+            check(args.size == 2) { "Expected 2 lines" }
+            ""
         }
         "PerpendicularLines" -> {
-            check(args.size == 4) { "Expected 4 points" }
+            check(args.size == 2) { "Expected 2 lines" }
             """
-                [red] l = line(${args[0]}, ${args[1]})
-                [red] m = line(${args[2]}, ${args[3]})
-                [hide] p = intersect(l, m)
-                [red] [fill] [dot] angle(p+dir(${args[0]}, ${args[1]}), p, p+dir(${args[2]}, ${args[3]}))
+                [hide] p = intersect(${args[0]}, ${args[1]})
+                [red] [fill] [dot] angle(intersect(${args[0]}, p+1, p+i), p, intersect(${args[1]}, p+1, p+i))
             """.trimIndent()
         }
         else -> error("Unexpected $name")
