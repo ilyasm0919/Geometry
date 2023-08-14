@@ -60,10 +60,11 @@ fun GeoGenContext.parseGeoGenInitial(line: String) {
             check(names.size == 3) { "Expected 3 points" }
             triangles["triangle(${names.joinToString()})"] = "t"
             """
-                ${names[0]} = #(-60-20i)
-                ${names[1]} = #(60-20i)
-                ${names[2]} = project(#(-60+60i), perpendicular(${names[0]}, ${names[0]}, ${names[1]}))
+                ${names[1]} = #(-60-20i)
+                ${names[2]} = #(60-20i)
+                ${names[0]} = cproject(#(-20), diameter_circle(${names[1]}, ${names[2])))
                 [orange] [fill] t = triangle(${names.joinToString()})
+                [gray] [fill] angle(${names[1]}, ${names[0]}, ${names[2]})
             """.trimIndent()
         }
         "Quadrilateral" -> {
