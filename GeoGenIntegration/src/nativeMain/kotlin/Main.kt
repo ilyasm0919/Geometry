@@ -62,7 +62,7 @@ fun GeoGenContext.parseGeoGenInitial(line: String) {
             """
                 ${names[1]} = #(-60-20i)
                 ${names[2]} = #(60-20i)
-                ${names[0]} = cproject(#(-20), diameter_circle(${names[1]}, ${names[2])))
+                ${names[0]} = cproject(#(-20), diameter_circle(${names[1]}, ${names[2]}))
                 [orange] [fill] t = triangle(${names.joinToString()})
                 [gray] [fill] angle(${names[1]}, ${names[0]}, ${names[2]})
             """.trimIndent()
