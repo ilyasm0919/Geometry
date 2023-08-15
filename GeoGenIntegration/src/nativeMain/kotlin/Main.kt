@@ -213,7 +213,7 @@ fun GeoGenContext.parseGeoGenGoal(line: String) {
                     }
                 }
                 else -> {
-                    val a = l.indexOfFirst { !it.isLetter() }
+                    val a = l.indexOfFirst { !it.isLetterOrDigit() }
                     l.substring(0, a).also {
                         l = l.substring(a)
                     }
