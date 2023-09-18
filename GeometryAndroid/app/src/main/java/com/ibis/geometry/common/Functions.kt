@@ -219,24 +219,22 @@ val functions = listOf(
             val la = (t.b - t.c).abs()
             val lb = (t.c - t.a).abs()
             val lc = (t.a - t.b).abs()
-            val pa = lb + lc - la
-            val pb = lc + la - lb
-            val pc = la + lb - lc
+            val pa = (lb + lc - la) / 2
+            val pb = (lc + la - lb) / 2
             intersect(
-                line(t.a, divide(pb.real() / pc, Segment(t.b, t.c))),
-                line(t.b, divide(pa.real() / pc, Segment(t.a, t.c))),
+                line(t.a, divide(pb.real() / la, Segment(t.b, t.c))),
+                line(t.b, divide(pa.real() / lb, Segment(t.a, t.c))),
             )
         },
         point.function("nagel", triangle) { t ->
             val la = (t.b - t.c).abs()
             val lb = (t.c - t.a).abs()
             val lc = (t.a - t.b).abs()
-            val pa = lb + lc - la
-            val pb = lc + la - lb
-            val pc = la + lb - lc
+            val pa = (lb + lc - la) / 2
+            val pb = (lc + la - lb) / 2
             intersect(
-                line(t.a, divide(pb.real() / pc, Segment(t.c, t.b))),
-                line(t.b, divide(pa.real() / pc, Segment(t.c, t.a))),
+                line(t.a, divide(pb.real() / la, Segment(t.c, t.b))),
+                line(t.b, divide(pa.real() / lb, Segment(t.c, t.a))),
             )
         },
     ),
