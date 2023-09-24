@@ -19,7 +19,7 @@ data class GeoGenContext(
     }
     private fun obj(value: String, prefix: String, from: MutableMap<String, String>, modificators: String) =
         when (val res = from[value]) {
-            null -> (prefix + from.size.inc()).also {
+            null -> (prefix + "_{" + from.size.inc() + "}").also {
                 text("$modificators $it = $value")
                 from[value] = it
             }
