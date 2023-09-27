@@ -33,7 +33,7 @@ object TextDrawer: TextDrawer {
             textSize = 40f
         }
         val layout = StaticLayout.Builder.obtain(spanned, 0, spanned.length, paint,
-            paint.measureText(spanned, 0, spanned.length).nextUp().roundToInt()).build()
+            paint.measureText(spanned, 0, spanned.length).nextUp().roundToInt()+spanned.length).build()
 
         canvas.translate(pos.x + 12f, pos.y - 24f)
         layout.draw(canvas.nativeCanvas)
