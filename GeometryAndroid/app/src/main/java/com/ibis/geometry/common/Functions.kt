@@ -300,7 +300,7 @@ val functions = listOf(
             project(orthocenter(Triangle(a, b, c)), line(b, (a + c) / 2))
         },
         triangle.function("dumpty", point, point, point) { a, b, c ->
-            project(circumcenter(Triangle(a, b, c)), symedian(b, a, c))
+            project(circumcenter(Triangle(a, b, c)), symedian(a, b, c))
         },
         triangle.function("antimidtriangle", triangle) { t ->
             Triangle(t.b + t.c - t.a, t.c + t.a - t.b, t.a + t.b - t.c)
