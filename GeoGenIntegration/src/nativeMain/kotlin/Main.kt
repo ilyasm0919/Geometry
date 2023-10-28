@@ -164,6 +164,33 @@ fun GeoGenContext.parseGeoGenLine(line: String) {
             angle(args[2], args[0], args[1])
             null
         }
+        "TangentLinesIntersection" -> "$name = inversion((${args[1]} + ${args[2]}) / 2, circumcircle(${args.joinToString()}))"
+        "HumptyPoint" -> "$name = humpty(${args[1]}, ${args[0]}, ${args[2]})"
+        "DumptyPoint" -> "$name = dumpty(${args[1]}, ${args[0]}, ${args[2]})"
+        "Isogonal" -> "$name = isogonal(${args.joinToString()})"
+        "Isotomic" -> "$name = isotomic(${args.joinToString()})"
+        "Centroid4" -> "$name = centroid(${args.joinToString()})"
+
+        "Lemoine" -> "$name = lemoine(${args.joinToString()})"
+        "Nagel" -> "$name = nagel(${args.joinToString()})"
+        "Gergonne" -> "$name = gergonne(${args.joinToString()})"
+
+        "Symedian" -> "[bounded] [gray] $name = symedian(${args[1]}, ${args[0]}, ${args[2]})"
+        "RadiusLine" -> "[bounded] [gray] $name = line(${args[0]}, circumcenter(${args[1]}, ${args[0]}, ${args[2]}))"
+
+
+        "SymedianEnd" -> "$name = intersect(symedian(${args[1]}, ${args[0]}, ${args[2]}), ${args[1]}, ${args[2]})"
+        "RadiusLineEnd" -> "$name = intersect(${args[0]}, circumcenter(${args[1]}, ${args[0]}, ${args[2]}), ${args[1]}, ${args[2]})"
+        "ExternalAngleBisectorEnd" -> "$name = intersect(exbisector(${args[1]}, ${args[0]}, ${args[2]}), ${args[1]}, ${args[2]})"
+        "BisectorEnd" -> "$name = intersect(bisector(${args[1]}, ${args[0]}, ${args[2]}), ${args[1]}, ${args[2]})"
+
+        "HeightMiddle" -> "$name = midpoint(${args[0]}, project(${args[0]}, ${args[1]}, ${args[2]}))"
+        "MedianMiddle" -> "$name = midpoint(${args[0]}, midpoint(${args[1]}, ${args[2]}))"
+        "SymedianMiddle" -> "$name = midpoint(${args[0]}, intersect(symedian(${args[1]}, ${args[0]}, ${args[2]}), ${args[1]}, ${args[2]}))"
+        "RadiusLineMiddle" -> "$name = midpoint(${args[0]}, intersect(${args[0]}, circumcenter(${args[1]}, ${args[0]}, ${args[2]}), ${args[1]}, ${args[2]}))"
+        "ExternalAngleBisectorMiddle" -> "$name = midpoint(${args[0]}, intersect(exbisector(${args[1]}, ${args[0]}, ${args[2]}), ${args[1]}, ${args[2]}))"
+        "BisectorMiddle" -> "$name = midpoint(${args[0]}, intersect(bisector(${args[1]}, ${args[0]}, ${args[2]}), ${args[1]}, ${args[2]}))"
+
         "ParallelLine" -> "$name = parallel(${args.joinToString()})"
         "ParallelLineToLineFromPoints" -> "$name = parallel(${args[0]}, ${line(args[1], args[2])})"
         "ParallelogramPoint" -> {

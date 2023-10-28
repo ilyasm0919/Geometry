@@ -6,7 +6,7 @@ import kotlin.math.sqrt
 interface ArgParser {
     val size: Int
     fun nextArg(): Geometric?
-    operator fun<T> Arg<T>.invoke() = parser() ?: error("Expected $arg")
+    operator fun <T> Arg<T>.invoke() = parser() ?: error("Expected $arg")
 }
 
 class Arg<out T>(val arg: String, val parser: ArgParser.() -> T?) {
@@ -68,11 +68,18 @@ val angle = Arg("Angle") {
     }
 }
 
-class Function(val name: String, private val args: List<String>, private val ret: String, val parser: (List<Reactive<Geometric>>) -> Reactive<Geometric>) {
+fun angleFromPoints(a: Complex, b: Complex, c: Complex) = Angle(b, (a - b).arg(), (c - b).arg())
+
+class Function(
+    val name: String,
+    private val args: List<String>,
+    private val ret: String,
+    val parser: (List<Reactive<Geometric>>) -> Reactive<Geometric>
+) {
     override fun toString() = "$name(${args.joinToString()}): $ret"
 }
 
-fun<T> parseArgs(args: List<Reactive<Geometric>>, parser: ArgParser.() -> T): Reactive<T> = args.traverse { input ->
+fun <T> parseArgs(args: List<Reactive<Geometric>>, parser: ArgParser.() -> T): Reactive<T> = args.traverse { input ->
     val arguments = object : ArgParser {
         override val size = input.size
         val iterator = input.iterator()
@@ -83,17 +90,20 @@ fun<T> parseArgs(args: List<Reactive<Geometric>>, parser: ArgParser.() -> T): Re
     res
 }
 
-fun<T: Geometric> Arg<T>.mkFunction(name: String, vararg args: Any, parser: ArgParser.() -> T) = Function(name, args.map(Any::toString), arg) {
-    parseArgs(it, parser)
-}
-fun<T: Geometric, T1> Arg<T>.function(
+fun <T : Geometric> Arg<T>.mkFunction(name: String, vararg args: Any, parser: ArgParser.() -> T) =
+    Function(name, args.map(Any::toString), arg) {
+        parseArgs(it, parser)
+    }
+
+fun <T : Geometric, T1> Arg<T>.function(
     name: String,
     arg: Arg<T1>,
     parser: (T1) -> T
 ) = mkFunction(name, arg) {
     parser(arg())
 }
-fun<T: Geometric, T1, T2> Arg<T>.function(
+
+fun <T : Geometric, T1, T2> Arg<T>.function(
     name: String,
     arg1: Arg<T1>,
     arg2: Arg<T2>,
@@ -101,7 +111,8 @@ fun<T: Geometric, T1, T2> Arg<T>.function(
 ) = mkFunction(name, arg1, arg2) {
     parser(arg1(), arg2())
 }
-fun<T: Geometric, T1, T2, T3> Arg<T>.function(
+
+fun <T : Geometric, T1, T2, T3> Arg<T>.function(
     name: String,
     arg1: Arg<T1>,
     arg2: Arg<T2>,
@@ -110,12 +121,15 @@ fun<T: Geometric, T1, T2, T3> Arg<T>.function(
 ) = mkFunction(name, arg1, arg2, arg3) {
     parser(arg1(), arg2(), arg3())
 }
-fun<T: Geometric> mkTrinomial(name: String, vararg args: Any, ret: Arg<T>, parser: ArgParser.(TrinomialOption) -> T) = arrayOf(
-    ret.mkFunction(name, point, *args) { parser(TrinomialOption.RootNot(point())) },
-    ret.mkFunction(name + "1", *args) { parser(TrinomialOption.Root1) },
-    ret.mkFunction(name + "2", *args) { parser(TrinomialOption.Root2) },
-)
-fun<T: Geometric, T1, T2> Arg<T>.trinomial(
+
+fun <T : Geometric> mkTrinomial(name: String, vararg args: Any, ret: Arg<T>, parser: ArgParser.(TrinomialOption) -> T) =
+    arrayOf(
+        ret.mkFunction(name, point, *args) { parser(TrinomialOption.RootNot(point())) },
+        ret.mkFunction(name + "1", *args) { parser(TrinomialOption.Root1) },
+        ret.mkFunction(name + "2", *args) { parser(TrinomialOption.Root2) },
+    )
+
+fun <T : Geometric, T1, T2> Arg<T>.trinomial(
     name: String,
     arg1: Arg<T1>,
     arg2: Arg<T2>,
@@ -123,7 +137,8 @@ fun<T: Geometric, T1, T2> Arg<T>.trinomial(
 ) = mkTrinomial(name, arg1, arg2, ret = this) {
     parser(it, arg1(), arg2())
 }
-fun<T: Geometric> Arg<T>.constructor(name: String) = function(name, this) { it }
+
+fun <T : Geometric> Arg<T>.constructor(name: String) = function(name, this) { it }
 
 
 fun line(a: Complex, b: Complex) =
@@ -165,12 +180,31 @@ fun midtriangle(t: Triangle) = Triangle((t.a + t.b) / 2, (t.b + t.c) / 2, (t.c +
 
 fun normalize(a: Complex) = if (a == Complex.ZERO) Complex.ZERO else a / a.abs()
 
-fun tangentPoint(option: TrinomialOption, a: Complex, c: Circle) = root(option,
+fun tangentPoint(option: TrinomialOption, a: Complex, c: Circle) = root(
+    option,
     (a - c.center).conj(),
     -c.radiusSqr.real() * 2 - c.center * (a - c.center).conj() * 2,
     (a + c.center) * c.radiusSqr + c.center * c.center * (a - c.center).conj()
 )
 
+fun isogonal(p: Complex, t: Triangle) = circumcenter(
+    Triangle(
+        p.symmetry(line(t.a, t.b)),
+        p.symmetry(line(t.b, t.c)),
+        p.symmetry(line(t.c, t.a))
+    )
+)
+
+fun bisector(a: Angle) = (a.to + a.from + PI).times(0.5.imagine()).exp().let {
+    Line(it, -(a.center * it.conj()).re * 2)
+}
+
+fun symedian(a: Complex, b: Complex, c: Complex) = line(b, ((a + c) / 2).inversion(circumcircle(Triangle(a, b, c))))
+
+
+fun orthocenter(t: Triangle) = ((t.b - t.a) * t.c.norm + (t.c - t.b) * t.a.norm + (t.a - t.c) * t.b.norm +
+        (t.a * t.a - t.b * t.b) * t.c.conj() + (t.b * t.b - t.c * t.c) * t.a.conj() + (t.c * t.c - t.a * t.a) * t.b.conj()) /
+        ((t.b - t.c) * t.a.conj() + (t.c - t.a) * t.b.conj() + (t.a - t.b) * t.c.conj())
 
 val functions = listOf(
     "Constructors" to listOf(
@@ -187,7 +221,8 @@ val functions = listOf(
     "Intersections" to listOf(
         point.function("intersect", line, line, ::intersect),
         *point.trinomial("cintersect", line, circle) { option, l, c ->
-            root(option,
+            root(
+                option,
                 l.coef.conj(),
                 l.free + c.center.conj() * l.coef - c.center * l.coef.conj(),
                 c.radiusSqr * l.coef - c.center * l.free - c.center.norm * l.coef
@@ -195,7 +230,8 @@ val functions = listOf(
         },
         *point.trinomial("ccintersect", circle, circle) { option, c1, c2 ->
             (c2.center - c1.center).conj().let {
-                root(option,
+                root(
+                    option,
                     it,
                     (c2.radiusSqr - c1.radiusSqr).real() - (c2.center + c1.center) * it,
                     c1.center * c2.center * it - c1.center * c2.radiusSqr + c2.center * c1.radiusSqr
@@ -237,6 +273,9 @@ val functions = listOf(
                 line(t.b, divide(pa.real() / lb, Segment(t.c, t.a))),
             )
         },
+        point.function("lemoine", triangle) { t ->
+            isogonal(centroid(t), t)
+        },
     ),
     "Geometry of a triangle" to listOf(
         circle.function("circumcircle", triangle, ::circumcircle),
@@ -259,11 +298,42 @@ val functions = listOf(
             circumcircle(midtriangle(t))
         },
         point.function("isogonal", point, triangle) { p, t ->
-            circumcenter(Triangle(
-                p.symmetry(line(t.a, t.b)),
-                p.symmetry(line(t.b, t.c)),
-                p.symmetry(line(t.c, t.a)),
-            ))
+            circumcenter(
+                Triangle(
+                    p.symmetry(line(t.a, t.b)),
+                    p.symmetry(line(t.b, t.c)),
+                    p.symmetry(line(t.c, t.a)),
+                )
+            )
+        },
+        point.function("isotomic", point, triangle) { p, t ->
+            val pa = intersect(line(t.a, p), line(t.b, t.c))
+            val pb = intersect(line(t.b, p), line(t.c, t.a))
+            intersect(
+                line(t.a, t.b + t.c - pa),
+                line(t.b, t.c + t.a - pb)
+            )
+        },
+        triangle.function("humpty", point, point, point) { a, b, c ->
+            project(orthocenter(Triangle(a, b, c)), line(b, (a + c) / 2))
+        },
+        triangle.function("dumpty", point, point, point) { a, b, c ->
+            project(circumcenter(Triangle(a, b, c)), symedian(b, a, c))
+        },
+        triangle.function("antimidtriangle", triangle) { t ->
+            Triangle(t.b + t.c - t.a, t.c + t.a - t.b, t.a + t.b - t.c)
+        },
+        triangle.function("orthotriangle", triangle) { t ->
+            Triangle(project(t.a, line(t.b, t.c)), project(t.b, line(t.c, t.a)), project(t.c, line(t.a, t.b)))
+        },
+        triangle.function("bevantriangle", triangle) { t ->
+            Triangle(excenter(t.b, t.a, t.c), excenter(t.c, t.b, t.a), excenter(t.a, t.c, t.b))
+        },
+        point.function("bisectorEnd", point, point, point) { a, b, c ->
+            intersect(bisector(angleFromPoints(a, b, c)), line(a, c))
+        },
+        point.function("symedianEnd", point, point, point) { a, b, c ->
+            intersect(symedian(a, b, c), line(a, c))
         },
     ),
     "Lines" to listOf(
@@ -281,16 +351,13 @@ val functions = listOf(
             Line(l.coef * Complex.I, -(a.conj() * l.coef * Complex.I).re * 2)
         },
         point.function("project", point, line, ::project),
-        line.function("bisector", angle) { a ->
-            (a.to + a.from + PI).times(0.5.imagine()).exp().let {
-                Line(it, -(a.center * it.conj()).re*2)
-            }
-        },
+        line.function("bisector", angle, ::bisector),
         line.function("exbisector", angle) { a ->
             (a.to + a.from).times(0.5.imagine()).exp().let {
-                Line(it, -(a.center * it.conj()).re*2)
+                Line(it, -(a.center * it.conj()).re * 2)
             }
         },
+        line.function("symedian", point, point, point, ::symedian),
     ),
     "Circles" to listOf(
         real.function("radius", circle) { sqrt(it.radiusSqr).real() },
@@ -300,7 +367,7 @@ val functions = listOf(
         },
         *line.trinomial("tangent", point, circle) { option, a, c ->
             (tangentPoint(option, a, c) - c.center).let {
-                Line(it, -(it*c.center.conj()).re * 2 - c.radiusSqr * 2)
+                Line(it, -(it * c.center.conj()).re * 2 - c.radiusSqr * 2)
             }
         },
         *point.trinomial("tangentPoint", point, circle, ::tangentPoint),
@@ -311,9 +378,9 @@ val functions = listOf(
             ((c1.radiusSqr - c1.center.norm) * (c2.center - c3.center) +
                     (c2.radiusSqr - c2.center.norm) * (c3.center - c1.center) +
                     (c3.radiusSqr - c3.center.norm) * (c1.center - c2.center)) /
-            (c1.center * c2.center.conj() - c1.center.conj() * c2.center +
-                    c2.center * c3.center.conj() - c2.center.conj() * c3.center +
-                    c3.center * c1.center.conj() - c3.center.conj() * c1.center)
+                    (c1.center * c2.center.conj() - c1.center.conj() * c2.center +
+                            c2.center * c3.center.conj() - c2.center.conj() * c3.center +
+                            c3.center * c1.center.conj() - c3.center.conj() * c1.center)
         },
         line.function("polar", point, circle) { a, c ->
             (a - c.center).let {
@@ -332,7 +399,7 @@ val functions = listOf(
     "Algebra" to listOf(
         real.function("re", complex) { it.re.real() },
         real.function("im", complex) { it.im.real() },
-        complex.function("sqr", complex) { it*it },
+        complex.function("sqr", complex) { it * it },
         complex.function("sqrt", complex, Complex::sqrt),
         complex.function("exp", complex, Complex::exp),
         complex.function("ln", complex, Complex::ln),
